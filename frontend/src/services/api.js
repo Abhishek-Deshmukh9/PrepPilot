@@ -8,7 +8,7 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 120000, # 120 seconds timeout for long-running AI generation tasks
+  timeout: 120000, // 120 seconds timeout for long-running AI generation tasks
 });
 
 // Response interceptor to format error messages consistently
@@ -20,13 +20,13 @@ apiClient.interceptors.response.use(
       status: error.response?.status,
       data: error.response?.data,
     };
-    
+
     if (error.response?.data?.detail) {
       customError.message = error.response.data.detail;
     } else if (error.message) {
       customError.message = error.message;
     }
-    
+
     return Promise.reject(customError);
   }
 );

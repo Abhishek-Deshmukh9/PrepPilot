@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     # Gemini AI
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash"
 
     # Storage
     upload_dir: str = "./uploads"

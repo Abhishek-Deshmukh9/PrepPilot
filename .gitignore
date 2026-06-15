@@ -1,0 +1,36 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Databases
+*.db
+
+# Vector DB
+chroma_db/
+
+# Uploaded files
+uploads/
+
+# Frontend dependencies
+node_modules/
+
+# Build files
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary test files
+backend/test_*.py
+backend/test_key.py
+backend/test_models.py
+backend/test_new_sdk.py

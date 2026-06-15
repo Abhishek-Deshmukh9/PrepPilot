@@ -12,7 +12,7 @@ class GeneratedContent(Base):
     content_type: Mapped[str] = mapped_column(String(50), nullable=False) # 'summary', 'mcq', 'revision', 'keypoints'
     subtype: Mapped[str] = mapped_column(String(50), nullable=True) # 'executive', 'detailed', 'cheat_sheet', etc.
     generated_text: Mapped[str] = mapped_column(String, nullable=False)
-    model_used: Mapped[str] = mapped_column(String(50), default="gemini-2.5-flash")
+    model_used: Mapped[str] = mapped_column(String(50), default="gemini-2.0-flash")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships

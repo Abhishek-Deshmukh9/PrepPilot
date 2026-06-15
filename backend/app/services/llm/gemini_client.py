@@ -1,26 +1,49 @@
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
+from google import genai
+from google.genai import types
+from google.genai.errors import APIError, ClientError, ServerError
 from app.config import get_settings
 from typing import List, Dict, Any, Optional
 import json
 import logging
-from tenacity import retry, stop_after_attempt, wait_exponential
+import asyncio
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+def is_transient_error(exception: Exception) -> bool:
+    """Determine if a GenAI API exception is transient and should be retried."""
+    if isinstance(exception, ServerError):
+        return True
+    if isinstance(exception, ClientError):
+        # Retry on HTTP 429 (Rate Limit) if it's transient, otherwise do not retry 4xx errors
+        code = getattr(exception, 'code', None)
+        if code == 429 or (code is None and "429" in str(exception)):
+            return True
+        return False
+    if isinstance(exception, APIError):
+        return True
+    return False
+
 class GeminiClient:
     def __init__(self):
         self.api_key = settings.gemini_api_key
+        self.client = None
         if not self.api_key:
             logger.warning("GEMINI_API_KEY is not set. Gemini API calls will fail.")
         else:
-            genai.configure(api_key=self.api_key)
+            self.client = genai.Client(api_key=self.api_key)
         
-        # We use gemini-2.5-flash as the fast, cost-effective default model
-        self.model_name = "gemini-2.5-flash"
+        # Load from config settings, default to gemini-2.5-flash
+        self.model_name = getattr(settings, 'gemini_model', 'gemini-2.5-flash')
+        print("USING MODEL:", self.model_name)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @retry(
+        retry=retry_if_exception(is_transient_error),
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True
+    )
     async def _call_gemini_api(
         self, 
         prompt: str, 
@@ -29,25 +52,29 @@ class GeminiClient:
         is_json: bool = False
     ) -> str:
         """Helper to invoke Gemini API with retries and structural configuration."""
-        if not self.api_key:
+        if not self.api_key or not self.client:
             raise ValueError("Gemini API key is missing. Please set GEMINI_API_KEY in the environment.")
             
-        generation_config = {}
+        config = types.GenerateContentConfig()
+        if system_instruction:
+            config.system_instruction = system_instruction
         if is_json:
-            generation_config["response_mime_type"] = "application/json"
+            config.response_mime_type = "application/json"
             if response_schema:
-                generation_config["response_schema"] = response_schema
+                config.response_schema = response_schema
 
-        model = genai.GenerativeModel(
-            model_name=self.model_name,
-            generation_config=GenerationConfig(**generation_config),
-            system_instruction=system_instruction
-        )
-
-        # Call in execution thread since genai sdk is synchronous
-        # Using run_in_executor in future can prevent blocking, for now standard call works
-        response = model.generate_content(prompt)
-        
+        try:
+            # Call modern SDK's synchronous generate_content in a thread pool to avoid blocking the loop
+            response = await asyncio.to_thread(
+                self.client.models.generate_content,
+                model=self.model_name,
+                contents=prompt,
+                config=config
+            )
+        except Exception as e:
+            logger.error(f"GEMINI ERROR: {repr(e)}")
+            raise
+            
         if not response.text:
             raise RuntimeError("Gemini returned an empty response.")
             
