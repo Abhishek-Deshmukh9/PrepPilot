@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_name: str = "PrepPilot AI"
     app_version: str = "1.0.0"
     secret_key: str = "change-me-in-production"
-    allowed_origins: str = "http://localhost:5173,http://localhost:3000"
+    allowed_origins: str = "http://localhost:5173,http://localhost:3000,https://prep-pilot-tawny.vercel.app"
 
     # Gemini AI
     gemini_api_key: str = ""
