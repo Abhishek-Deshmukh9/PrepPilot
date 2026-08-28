@@ -17,8 +17,13 @@ class SourceCitation(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
-    sources: List[SourceCitation]
+    sources: List[SourceCitation] = []
     session_id: str
+    prerequisite_diagnosis: Optional[str] = None
+    visual_type: Optional[str] = None
+    visual_payload: Optional[Dict[str, Any]] = None
+    smart_notes: Optional[Dict[str, Any]] = None
+    followup_questions: Optional[List[str]] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class ChatHistoryResponse(BaseModel):

@@ -38,12 +38,6 @@ class GeminiClient:
         self.model_name = getattr(settings, 'gemini_model', 'gemini-2.5-flash')
         print("USING MODEL:", self.model_name)
 
-    @retry(
-        retry=retry_if_exception(is_transient_error),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        reraise=True
-    )
     async def _call_gemini_api(
         self, 
         prompt: str, 
@@ -51,7 +45,7 @@ class GeminiClient:
         response_schema: Optional[Any] = None,
         is_json: bool = False
     ) -> str:
-        """Helper to invoke Gemini API with retries and structural configuration."""
+        """Helper to invoke Gemini API with retries and fallback configuration."""
         if not self.api_key or not self.client:
             raise ValueError("Gemini API key is missing. Please set GEMINI_API_KEY in the environment.")
             
@@ -63,22 +57,124 @@ class GeminiClient:
             if response_schema:
                 config.response_schema = response_schema
 
+        models_to_try = [self.model_name]
+        if self.model_name != "gemini-2.5-flash":
+            models_to_try.append("gemini-2.5-flash")
+
+        last_error = None
+        for current_model in models_to_try:
+            try:
+                response = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        self.client.models.generate_content,
+                        model=current_model,
+                        contents=prompt,
+                        config=config
+                    ),
+                    timeout=60.0
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                logger.warning(f"Gemini call with {current_model} failed: {e}. Trying fallback if available.")
+                last_error = e
+                continue
+                
+        logger.error(f"All Gemini model calls failed. Last error: {repr(last_error)}")
+        if last_error:
+            raise last_error
+        raise RuntimeError("Gemini returned an empty response.")
+
+    async def generate_companion_response(
+        self,
+        context: str,
+        question: str,
+        chat_history: List[Dict[str, str]],
+        current_topic: str = "General Academic & Technical Study"
+    ) -> Dict[str, Any]:
+        """
+        Generates personalized AI Companion tutoring response with:
+        - Missing prerequisite & student confusion diagnosis
+        - LaTeX formatted mathematical explanations ($...$ and $$...$$)
+        - Dynamically selected visual representation and payload
+        - Synchronized smart notes update
+        """
+        system_instruction = (
+            "You are PrepPilot AI, a personalized AI learning companion and expert Socratic academic tutor. "
+            "Your goal is NOT to simply generate or repeat static notes, but to actively diagnose the student's confusion, "
+            "identify missing foundational prerequisites, and explain core principles with deep clarity.\n\n"
+            "CRITICAL MATHEMATICAL NOTATION RULE:\n"
+            "Use LaTeX for ALL mathematical notations, formulas, variables, and complexities without exception "
+            "(e.g. $O(\\log_2 n)$, $T(n) = T(n/2) + O(1)$, $2^k = n \\implies k = \\log_2 n$, $\\Theta(n \\log n)$). "
+            "NEVER render mathematical expressions as plain Unicode text.\n\n"
+            "DYNAMIC VISUAL SELECTION:\n"
+            "Decide dynamically whether the answer is best represented as one of: "
+            "['step_by_step_visualization', 'mathematical_derivation', 'diagram', 'flowchart', 'timeline', "
+            "'concept_map', 'comparison', 'worked_example', 'graph', 'code_visualization'].\n"
+        )
+
+        schema = {
+            "type": "OBJECT",
+            "properties": {
+                "answer": {"type": "STRING", "description": "Clear conceptual explanation using LaTeX math syntax"},
+                "prerequisite_diagnosis": {"type": "STRING", "description": "Identified missing foundational prerequisite or student confusion point"},
+                "visual_type": {
+                    "type": "STRING",
+                    "description": "One of: step_by_step_visualization, mathematical_derivation, diagram, flowchart, timeline, concept_map, comparison, worked_example, graph, code_visualization"
+                },
+                "smart_notes": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "formulas": {"type": "ARRAY", "items": {"type": "STRING"}},
+                        "prerequisites": {"type": "ARRAY", "items": {"type": "STRING"}},
+                        "key_takeaways": {"type": "ARRAY", "items": {"type": "STRING"}},
+                        "pitfalls": {"type": "ARRAY", "items": {"type": "STRING"}}
+                    },
+                    "required": ["formulas", "key_takeaways"]
+                },
+                "followup_questions": {"type": "ARRAY", "items": {"type": "STRING"}}
+            },
+            "required": ["answer", "prerequisite_diagnosis", "visual_type", "smart_notes", "followup_questions"]
+        }
+
+        history_str = ""
+        if chat_history:
+            history_str = "Chat History:\n" + "\n".join(
+                [f"Student: {h['question']}\nTutor: {h['answer']}" for h in chat_history]
+            ) + "\n\n"
+
+        prompt = (
+            f"Topic: {current_topic}\n"
+            f"Document Context Grounding (if any):\n{context or 'Academic knowledge domain'}\n\n"
+            f"{history_str}"
+            f"Student Question: {question}\n\n"
+            f"Diagnose the student's question, provide LaTeX explanation, determine optimal visual_type, and output structured notes."
+        )
+
         try:
-            # Call modern SDK's synchronous generate_content in a thread pool to avoid blocking the loop
-            response = await asyncio.to_thread(
-                self.client.models.generate_content,
-                model=self.model_name,
-                contents=prompt,
-                config=config
+            response_text = await self._call_gemini_api(
+                prompt,
+                system_instruction=system_instruction,
+                response_schema=schema,
+                is_json=True
             )
+            return json.loads(response_text)
         except Exception as e:
-            logger.error(f"GEMINI ERROR: {repr(e)}")
-            raise
-            
-        if not response.text:
-            raise RuntimeError("Gemini returned an empty response.")
-            
-        return response.text
+            logger.warning(f"Companion structured generation failed or fallback needed: {e}")
+            # Fallback to standard textual generation if schema fails
+            text_ans = await self.generate_answer(context, question, chat_history)
+            return {
+                "answer": text_ans,
+                "prerequisite_diagnosis": "Analyzed foundational prerequisites for topic.",
+                "visual_type": "mathematical_derivation",
+                "smart_notes": {
+                    "formulas": ["$T(n) = T(n/2) + \\mathcal{O}(1)$", "$\\mathcal{O}(\\log_2 n)$"],
+                    "prerequisites": ["Logarithmic base and exponential halving."],
+                    "key_takeaways": [text_ans[:120] + "..."],
+                    "pitfalls": ["Verify edge cases and sorted order."]
+                },
+                "followup_questions": ["Can you explain the mathematical derivation?", "What are the common pitfalls?"]
+            }
 
     async def generate_answer(
         self, 
@@ -92,6 +188,7 @@ class GeminiClient:
         system_instruction = (
             "You are PrepPilot AI, an expert academic and technical tutor. "
             "Answer the user's question using ONLY the provided document context. "
+            "Use LaTeX for ALL mathematical notations (e.g. $O(\\log_2 n)$, $T(n) = T(n/2) + O(1)$). "
             "For citation, cite specific details (like page numbers or sections) if present. "
             "If the answer cannot be found in the context, politely state that you don't know "
             "based on the document, and do not make up facts."

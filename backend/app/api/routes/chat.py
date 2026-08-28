@@ -88,13 +88,19 @@ async def chat_with_document(
             # Non-blocking context failure; continue without document grounding if retrieval errors out
             context = ""
 
-    # 4. Generate answer using Gemini
+    # 4. Generate answer using Gemini Companion Tutor
     try:
-        answer = await gemini_client.generate_answer(
+        companion_result = await gemini_client.generate_companion_response(
             context=context,
             question=request.question,
             chat_history=chat_history_list
         )
+        answer = companion_result.get("answer", "")
+        prerequisite_diagnosis = companion_result.get("prerequisite_diagnosis")
+        visual_type = companion_result.get("visual_type")
+        visual_payload = companion_result.get("visual_payload")
+        smart_notes = companion_result.get("smart_notes")
+        followup_questions = companion_result.get("followup_questions")
     except Exception as e:
         logger.error(f"Failed to generate answer via Gemini: {e}")
         raise HTTPException(
@@ -120,5 +126,10 @@ async def chat_with_document(
     return ChatResponse(
         answer=answer,
         sources=sources,
-        session_id=request.session_id
+        session_id=request.session_id,
+        prerequisite_diagnosis=prerequisite_diagnosis,
+        visual_type=visual_type,
+        visual_payload=visual_payload,
+        smart_notes=smart_notes,
+        followup_questions=followup_questions
     )

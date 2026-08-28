@@ -24,12 +24,13 @@ const Dashboard = () => {
 
   const quickActions = [
     { 
-      name: "Interactive Chat", 
-      desc: "Ask questions and retrieve cited source notes from documents.", 
+      name: "AI Learning Companion", 
+      desc: "3-connected workspace: AI Socratic Tutor, Visual Canvas & Smart Notes.", 
       path: "/chat", 
       icon: MessageSquare, 
-      color: "from-blue-500 to-indigo-500",
-      requiresDoc: true 
+      color: "from-brand-600 to-indigo-600",
+      badge: "Core Redesign",
+      requiresDoc: false 
     },
     { 
       name: "Document Summarizer", 

@@ -21,8 +21,8 @@ const Sidebar = () => {
 
   const navigation = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
+    { name: "AI Learning Companion", path: "/chat", icon: MessageSquare, requiresDoc: false },
     { name: "Upload Documents", path: "/upload", icon: UploadCloud },
-    { name: "Chat with Notes", path: "/chat", icon: MessageSquare, requiresDoc: true },
     { name: "Summary Generator", path: "/summary", icon: FileDown, requiresDoc: true },
     { name: "MCQ Practice", path: "/mcqs", icon: HelpCircle, requiresDoc: true },
     { name: "Flashcards", path: "/flashcards", icon: Copy, requiresDoc: true },
