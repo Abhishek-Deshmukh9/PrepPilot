@@ -5,7 +5,8 @@ import {
   ChevronRight, 
   Loader2, 
   AlertTriangle,
-  FileDown
+  FileDown,
+  RotateCcw
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
@@ -143,6 +144,14 @@ const SummaryPage = () => {
             Analyzing document: <span className="font-semibold text-brand-500">{activeDocument.filename}</span>
           </p>
         </div>
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+          <span>{currentSummary ? "Regenerate" : "Generate Summary"}</span>
+        </button>
       </div>
 
       {/* Selector Tabs Row */}

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import documentService from "../services/documentService";
 
 const DocumentContext = createContext();
@@ -11,31 +11,60 @@ export const DocumentProvider = ({ children }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const pollingIntervalRef = useRef(null);
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await documentService.list();
       setDocuments(data);
       // Sync active document if it was deleted or changed status
-      if (activeDocument) {
-        const found = data.find((doc) => doc.id === activeDocument.id);
+      setActiveDocument((prev) => {
+        if (!prev) return null;
+        const found = data.find((doc) => doc.id === prev.id);
         if (found) {
-          setActiveDocument(found);
           localStorage.setItem("active_document", JSON.stringify(found));
-        } else {
-          setActiveDocument(null);
-          localStorage.removeItem("active_document");
+          return found;
         }
-      }
+        localStorage.removeItem("active_document");
+        return null;
+      });
+      return data;
     } catch (err) {
       console.error("Error fetching documents:", err);
       setError(err.message || "Failed to load documents.");
+      return [];
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-poll while any document is still processing
+  useEffect(() => {
+    const hasProcessing = documents.some((d) => d.status === "processing");
+
+    if (hasProcessing && !pollingIntervalRef.current) {
+      pollingIntervalRef.current = setInterval(async () => {
+        const updated = await fetchDocuments();
+        const stillProcessing = updated.some((d) => d.status === "processing");
+        if (!stillProcessing) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      }, 3000);
+    } else if (!hasProcessing && pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [documents, fetchDocuments]);
 
   const selectDocument = (doc) => {
     setActiveDocument(doc);
@@ -64,7 +93,7 @@ export const DocumentProvider = ({ children }) => {
   // Initial fetch on mount
   useEffect(() => {
     fetchDocuments();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <DocumentContext.Provider

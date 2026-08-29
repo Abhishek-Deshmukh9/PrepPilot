@@ -7,6 +7,10 @@ class ChatRequest(BaseModel):
     document_id: Optional[str] = Field(None, description="Optional document ID. If provided, chat is contextual to this document.")
     question: str = Field(..., description="The query/question asked by the user")
     top_k: Optional[int] = Field(5, description="Number of source chunks to retrieve")
+    tutor_mode: Optional[str] = Field(
+        "direct",
+        description="Pedagogical style: 'socratic' | 'direct' | 'exam_cram' | 'eli5' | 'worked_example'"
+    )
 
 class SourceCitation(BaseModel):
     chunk_id: str

@@ -1,396 +1,554 @@
-import React, { useState, useEffect } from "react";
-import { 
-  Brain, 
-  Layers, 
-  BookOpen, 
-  Sparkles, 
-  Compass, 
-  HelpCircle, 
-  LayoutGrid, 
-  Columns, 
-  Network,
-  ShieldCheck, 
-  Database, 
-  GitBranch, 
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Brain,
+  Send,
+  Loader2,
+  Trash2,
+  BookOpen,
   FileText,
-  Eye,
-  EyeOff,
-  Maximize2
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
+  Layers,
+  AlertTriangle,
+  RotateCcw,
+  PanelRightOpen,
+  PanelRightClose,
+  Lightbulb,
+  HelpCircle,
+  BookOpenCheck,
+  GraduationCap,
+  FlaskConical,
+  Info,
+  Copy,
+  Check,
+  MessageSquare
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
-import { LearnerProfileProvider, useLearnerProfile } from "../contexts/LearnerProfileContext";
-import LearnerProfileHUD from "../components/companion/LearnerProfileHUD";
-import LearningLoopTracker from "../components/companion/LearningLoopTracker";
-import AITutorChat from "../components/companion/AITutorChat";
+import chatService from "../services/chatService";
+import { MathRenderer } from "../components/common/MathRenderer";
 import VisualCanvas from "../components/canvas/VisualCanvas";
-import CompactInsightsPanel from "../components/companion/CompactInsightsPanel";
-import companionService from "../services/companionService";
 
-const TOPIC_OPTIONS = [
-  { id: "study_navigator", name: "Study Navigator", tag: "Mentor Path", icon: Compass },
-  { id: "knowledge_graph", name: "Knowledge Graph", tag: "Evolving Concepts", icon: Brain },
-  { id: "binary_search", name: "Binary Search", tag: "Array Halving", icon: Layers },
-  { id: "osi_model", name: "OSI 7-Layer Model", tag: "Data Flow Stack", icon: Network },
-  { id: "tcp_handshake", name: "TCP Handshake", tag: "SYN → SYN-ACK → ACK", icon: ShieldCheck },
-  { id: "dbms_normalization", name: "DBMS Normalization", tag: "1NF → 2NF → 3NF", icon: Database },
-  { id: "newtons_laws", name: "Newton's Laws", tag: "Force Vectors & F=ma", icon: Compass },
-  { id: "data_structure", name: "BST Trees", tag: "Binary Search Tree", icon: GitBranch },
-  { id: "recursion_dp", name: "Recursion & DP", tag: "Call Stack & Remediation", icon: Sparkles }
+// ─── Tutor Mode Configuration ───────────────────────────────────────────────
+const TUTOR_MODES = [
+  {
+    id: "socratic",
+    label: "Socratic",
+    description: "Guided discovery through questions",
+    icon: GraduationCap,
+    color: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800",
+    activeBg: "bg-purple-600 text-white border-purple-600 shadow-purple-500/20"
+  },
+  {
+    id: "direct",
+    label: "Direct",
+    description: "Clear, structured explanation",
+    icon: BookOpenCheck,
+    color: "text-brand-600 dark:text-brand-400",
+    bg: "bg-brand-50 dark:bg-brand-950/40 border-brand-200 dark:border-brand-800",
+    activeBg: "bg-brand-600 text-white border-brand-600 shadow-brand-500/20"
+  },
+  {
+    id: "exam_cram",
+    label: "Exam Cram",
+    description: "High-yield bullets & formulas only",
+    icon: Sparkles,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800",
+    activeBg: "bg-amber-500 text-white border-amber-500 shadow-amber-500/20"
+  },
+  {
+    id: "eli5",
+    label: "ELI5",
+    description: "Simple language & analogies",
+    icon: Lightbulb,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800",
+    activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-emerald-500/20"
+  },
+  {
+    id: "worked_example",
+    label: "Worked Example",
+    description: "Step-by-step with calculations",
+    icon: FlaskConical,
+    color: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800",
+    activeBg: "bg-rose-600 text-white border-rose-600 shadow-rose-500/20"
+  }
 ];
 
-const ChatPageContent = () => {
+// ─── Inline Markdown + Math renderer ────────────────────────────────────────
+const MessageContent = ({ text }) => {
+  if (!text) return null;
+  return (
+    <div className="space-y-2 leading-relaxed">
+      <MathRenderer text={text} />
+    </div>
+  );
+};
+
+// ─── Source Citation Card ────────────────────────────────────────────────────
+const SourceCard = ({ source, index }) => {
+  const [expanded, setExpanded] = useState(false);
+  const score = Math.round((source.score || 0) * 100);
+  return (
+    <div className="border border-slate-200/80 dark:border-slate-800/80 rounded-xl overflow-hidden text-[10px]">
+      <button
+        onClick={() => setExpanded((p) => !p)}
+        className="w-full flex items-center justify-between px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-left"
+      >
+        <div className="flex items-center space-x-2">
+          <FileText className="w-3 h-3 text-brand-500 shrink-0" />
+          <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-40">
+            {source.filename || "Document"}
+          </span>
+          {source.page && (
+            <span className="px-1.5 py-0.5 bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 rounded font-bold">
+              p.{source.page}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center space-x-1.5 shrink-0">
+          <span className="text-slate-400">{score}% match</span>
+          {expanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
+        </div>
+      </button>
+      {expanded && (
+        <div className="px-2.5 py-2 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800">
+          {source.text_snippet}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Main Chat Page ──────────────────────────────────────────────────────────
+const ChatPage = () => {
   const { activeDocument } = useDocuments();
-  const { profile } = useLearnerProfile();
-  
-  // Active Topic & Session
-  const [selectedTopicId, setSelectedTopicId] = useState("binary_search");
-  const currentTopic = TOPIC_OPTIONS.find(t => t.id === selectedTopicId)?.name || "Binary Search";
-  
+
   const [sessionId] = useState(() => {
-    let saved = localStorage.getItem("preppilot_companion_session");
+    let saved = localStorage.getItem("preppilot_chat_session");
     if (!saved) {
-      saved = `companion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem("preppilot_companion_session", saved);
+      saved = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("preppilot_chat_session", saved);
     }
     return saved;
   });
 
-  // 3-Pane State
   const [messages, setMessages] = useState([]);
+  const [inputQuestion, setInputQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [tutorMode, setTutorMode] = useState("direct");
+  const [showCanvas, setShowCanvas] = useState(false);
   const [visualPayload, setVisualPayload] = useState(null);
-  
-  // Canvas Collapse / Expansion Toggle
-  const [showCanvas, setShowCanvas] = useState(true);
+  const [error, setError] = useState("");
+  const [copiedIdx, setCopiedIdx] = useState(null);
 
-  // Student Learning State HUD
-  const [studentState, setStudentState] = useState({
-    mastery: profile.masteryLevel || 70,
-    confidenceLevel: profile.confidenceLevel || "Medium",
-    prerequisiteMissing: profile.prerequisiteGaps[0] || "Logarithms & Exponential Halving ($2^k = n \\implies k = \\log_2 n$)"
-  });
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
-  // Re-sync studentState when profile changes
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
-    setStudentState({
-      mastery: profile.masteryLevel,
-      confidenceLevel: profile.confidenceLevel,
-      prerequisiteMissing: profile.prerequisiteGaps[0] || profile.weakConcepts[0] || "Foundational concepts"
-    });
-  }, [profile]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
-  // Initial load
+  // Focus input on mount
   useEffect(() => {
-    const initDefaultTopic = async () => {
-      let initialQuery = "Why does binary search take O(log n)?";
-      if (profile.id === "student_d") {
-        initialQuery = "Explain Dynamic Programming memoization and how it works";
-      }
+    inputRef.current?.focus();
+  }, []);
 
-      const initialResponse = await companionService.queryTutor({
-        sessionId,
-        documentId: activeDocument?.id,
-        question: initialQuery,
-        currentTopic: profile.id === "student_d" ? "Recursion & DP" : "Binary Search",
-        learnerProfile: profile
-      });
+  const sendMessage = useCallback(async (questionText) => {
+    const text = (questionText || inputQuestion).trim();
+    if (!text || isLoading) return;
 
-      setMessages([
-        { sender: "user", text: initialQuery },
-        {
-          sender: "ai",
-          text: initialResponse.answer,
-          tutorRationale: initialResponse.tutorRationale,
-          prerequisiteDiagnosis: initialResponse.prerequisiteDiagnosis,
-          visualPayload: initialResponse.visual_payload,
-          followupQuestions: initialResponse.followup_questions
-        }
-      ]);
-
-      setVisualPayload(initialResponse.visual_payload);
-    };
-
-    initDefaultTopic();
-  }, [sessionId, profile.id]);
-
-  // Handle user question from AI Tutor Chat
-  const handleSendMessage = async (questionText) => {
-    if (!questionText.trim() || isLoading) return;
-
-    setMessages(prev => [...prev, { sender: "user", text: questionText }]);
+    setInputQuestion("");
+    setError("");
+    setMessages((prev) => [...prev, { role: "user", text }]);
     setIsLoading(true);
 
     try {
-      const response = await companionService.queryTutor({
+      const response = await chatService.query({
         sessionId,
-        documentId: activeDocument?.id,
-        question: questionText,
-        currentTopic,
-        learnerProfile: profile
+        documentId: activeDocument?.id || null,
+        question: text,
+        topK: 5,
+        tutorMode
       });
 
-      setMessages(prev => [
-        ...prev,
-        {
-          sender: "ai",
-          text: response.answer,
-          tutorRationale: response.tutorRationale,
-          prerequisiteDiagnosis: response.prerequisiteDiagnosis,
-          visualPayload: response.visual_payload,
-          followupQuestions: response.followup_questions
-        }
-      ]);
+      const aiMsg = {
+        role: "ai",
+        text: response.answer || "",
+        sources: response.sources || [],
+        prerequisite_diagnosis: response.prerequisite_diagnosis,
+        visual_payload: response.visual_payload,
+        visual_type: response.visual_type,
+        smart_notes: response.smart_notes,
+        followup_questions: response.followup_questions || []
+      };
 
+      setMessages((prev) => [...prev, aiMsg]);
+
+      // Auto-open visual canvas if a visual payload came back
       if (response.visual_payload) {
         setVisualPayload(response.visual_payload);
-        setShowCanvas(true); // Automatically expand canvas when visual is provided
-      }
-
-      setStudentState(prev => ({
-        ...prev,
-        mastery: Math.min(prev.mastery + 3, 100),
-        prerequisiteMissing: response.prerequisiteDiagnosis || prev.prerequisiteMissing
-      }));
-
-    } catch (err) {
-      console.error("Companion query error:", err);
-      setMessages(prev => [
-        ...prev,
-        {
-          sender: "ai",
-          text: "I encountered an error analyzing your question. Please verify your connection or try again."
-        }
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle click-to-explain from visual canvas components
-  const handleComponentClick = async (componentData) => {
-    setIsLoading(true);
-    try {
-      const explanation = await companionService.explainComponent(componentData);
-      
-      setMessages(prev => [
-        ...prev,
-        {
-          sender: "ai",
-          text: explanation.answer,
-          tutorRationale: explanation.tutorRationale,
-          prerequisiteDiagnosis: explanation.prerequisiteDiagnosis,
-          followupQuestions: explanation.followup_questions
-        }
-      ]);
-    } catch (err) {
-      console.error("Component click explanation error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTopicSwitch = async (topicId) => {
-    setSelectedTopicId(topicId);
-    const targetTopic = TOPIC_OPTIONS.find(t => t.id === topicId);
-    if (!targetTopic) return;
-
-    setIsLoading(true);
-    try {
-      let queryPrompt = "Why does binary search take O(log n)?";
-      if (topicId === "study_navigator") queryPrompt = "What should I study today based on my learning profile?";
-      else if (topicId === "knowledge_graph") queryPrompt = "Show my evolving Knowledge Graph and concept prerequisite map";
-      else if (topicId === "osi_model") queryPrompt = "Explain the OSI 7-layer model and how data flows through the stack";
-      else if (topicId === "tcp_handshake") queryPrompt = "How does the TCP 3-way handshake work with SYN, SYN-ACK, and ACK?";
-      else if (topicId === "dbms_normalization") queryPrompt = "Explain 1NF, 2NF, and 3NF database normalization";
-      else if (topicId === "newtons_laws") queryPrompt = "How do Newton's laws apply to force vectors, friction, and acceleration?";
-      else if (topicId === "data_structure") queryPrompt = "Explain Binary Search Tree properties and inorder traversal";
-      else if (topicId === "recursion_dp") queryPrompt = "Explain Dynamic Programming memoization and call stack";
-
-      if (topicId === "study_navigator") {
-        setVisualPayload({ visual_type: "study_navigator", title: "Proactive Study Navigator" });
-        setShowCanvas(true);
-      } else if (topicId === "knowledge_graph") {
-        setVisualPayload({ visual_type: "knowledge_graph", title: "Interactive Knowledge Graph" });
         setShowCanvas(true);
       }
-
-      const res = await companionService.queryTutor({
-        sessionId,
-        documentId: activeDocument?.id,
-        question: queryPrompt,
-        currentTopic: targetTopic.name,
-        learnerProfile: profile
-      });
-
-      setMessages([
-        { sender: "user", text: queryPrompt },
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+      setMessages((prev) => [
+        ...prev,
         {
-          sender: "ai",
-          text: res.answer,
-          tutorRationale: res.tutorRationale,
-          prerequisiteDiagnosis: res.prerequisiteDiagnosis,
-          visualPayload: res.visual_payload,
-          followupQuestions: res.followup_questions
+          role: "ai",
+          text: "I encountered an error processing your question. Please check your connection or try again.",
+          sources: [],
+          followup_questions: []
         }
       ]);
-
-      setVisualPayload(res.visual_payload);
-      setShowCanvas(true);
     } finally {
       setIsLoading(false);
     }
+  }, [inputQuestion, isLoading, sessionId, activeDocument, tutorMode]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sendMessage();
   };
 
   const handleClearHistory = () => {
-    if (window.confirm("Reset study session and clear chat history?")) {
+    if (window.confirm("Reset this study session and clear chat history?")) {
       setMessages([]);
+      setVisualPayload(null);
+      setShowCanvas(false);
+      setError("");
     }
   };
 
-  const handleNextStep = (nextStepData) => {
-    if (!nextStepData) return;
-    if (nextStepData.type === "quiz") {
-      handleSendMessage("Quiz me on this concept");
-    } else if (nextStepData.type === "prerequisite") {
-      handleSendMessage("Explain the missing prerequisite in simple terms");
-    } else if (nextStepData.type === "practice") {
-      handleSendMessage("Give me a step-by-step worked example");
-    } else {
-      handleSendMessage("What is the next topic after Binary Search?");
-    }
+  const handleCopy = async (text, idx) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx(null), 2000);
+    } catch (_) {}
   };
+
+  const currentMode = TUTOR_MODES.find((m) => m.id === tutorMode) || TUTOR_MODES[1];
+  const ModeIcon = currentMode.icon;
+
+  // ─── Quick Prompt Chips ────────────────────────────────────────────────────
+  const quickChips = [
+    { label: "Summarize this", prompt: "Summarize the key points from this document" },
+    { label: "Define key terms", prompt: "What are the most important terms and definitions in this document?" },
+    { label: "What are the main concepts?", prompt: "What are the main concepts I need to understand from this document?" },
+    { label: "Give me exam questions", prompt: "What types of questions might appear in an exam on this material?" },
+    { label: "Explain simply", prompt: "Explain the core idea of this document in simple terms" },
+  ];
 
   return (
-    <div className="flex flex-col space-y-4 pb-8 min-h-screen">
-      
-      {/* Top Learning Environment Navigation Bar */}
-      <div className="p-3.5 bg-white/85 dark:bg-slate-900/85 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm backdrop-blur-xl flex flex-wrap items-center justify-between gap-3">
-        
-        {/* Topic Selector */}
+    <div className="flex flex-col h-[calc(100vh-4rem-3rem)] gap-0">
+
+      {/* ── Header Bar ── */}
+      <div className="shrink-0 px-4 pt-1 pb-3 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center space-x-2.5">
           <div className="p-2 rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/20">
             <Brain className="w-4 h-4" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
-                PrepPilot Learning Companion
-              </h2>
-              <span className="hidden sm:inline-block px-2 py-0.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-full text-[10px] font-bold border border-brand-500/20">
-                Socratic AI Tutor
-              </span>
-            </div>
-            <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 mt-1 overflow-x-auto">
-              <span>Topic:</span>
-              <div className="flex items-center space-x-1">
-                {TOPIC_OPTIONS.map((opt) => {
-                  const Icon = opt.icon;
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() => handleTopicSwitch(opt.id)}
-                      className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all shrink-0 ${
-                        selectedTopicId === opt.id
-                          ? "bg-brand-600 text-white shadow-xs font-bold scale-[1.02]"
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      <Icon className="w-3 h-3" />
-                      <span>{opt.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
+              Ask AI Anything
+            </h1>
+            <p className="text-[10px] text-slate-400 font-medium">
+              {activeDocument
+                ? `Studying: ${activeDocument.filename}`
+                : "Upload a document to get document-grounded answers"}
+            </p>
           </div>
         </div>
 
-        {/* Canvas Visibility Toggle & Active Document Indicator */}
-        <div className="flex items-center space-x-2">
-          {activeDocument && (
-            <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 bg-brand-50 dark:bg-brand-950/40 border border-brand-200/60 dark:border-brand-800/60 rounded-xl text-[11px] text-brand-700 dark:text-brand-300 font-medium">
-              <FileText className="w-3.5 h-3.5" />
-              <span className="truncate max-w-32">{activeDocument.filename}</span>
-            </div>
-          )}
-
-          {/* Toggle Visual Canvas Button */}
+        <div className="flex items-center gap-2">
+          {/* Canvas Toggle */}
           <button
-            onClick={() => setShowCanvas(!showCanvas)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 border ${
-              showCanvas 
-                ? "bg-brand-50 dark:bg-brand-950/40 border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-300"
-                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+            onClick={() => setShowCanvas((s) => !s)}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+              showCanvas
+                ? "bg-brand-50 dark:bg-brand-950/40 border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-300"
+                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-brand-300"
             }`}
-            title="Toggle Visual Canvas"
           >
-            {showCanvas ? <Eye className="w-3.5 h-3.5 text-brand-500" /> : <EyeOff className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{showCanvas ? "Canvas Visible" : "Canvas Hidden"}</span>
+            {showCanvas ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{showCanvas ? "Hide Canvas" : "Visual Canvas"}</span>
           </button>
+
+          {/* Clear History */}
+          {messages.length > 0 && (
+            <button
+              onClick={handleClearHistory}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border border-transparent hover:border-rose-200/50"
+              title="Reset conversation"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* LEARNER PROFILE HUD (1-Click Archetype Switcher) */}
-      <LearnerProfileHUD />
+      {/* ── Tutor Mode Selector ── */}
+      <div className="shrink-0 px-4 pb-3">
+        <div className="bg-white/80 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-2 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0 px-1">
+              Tutor Mode:
+            </span>
+            {TUTOR_MODES.map((mode) => {
+              const Icon = mode.icon;
+              const isActive = tutorMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => setTutorMode(mode.id)}
+                  title={mode.description}
+                  className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 border transition-all ${
+                    isActive
+                      ? `${mode.activeBg} shadow-md`
+                      : `${mode.bg} ${mode.color} hover:opacity-80`
+                  }`}
+                >
+                  <Icon className="w-3 h-3" />
+                  <span>{mode.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-      {/* LEARNING LOOP TRACKER (Where am I, What am I learning, Next Action) */}
-      <LearningLoopTracker 
-        activeTopic={currentTopic}
-        onActionClick={handleNextStep}
-      />
+      {/* ── Main Content: Chat + Canvas ── */}
+      <div className="flex-1 flex gap-4 px-4 pb-4 min-h-0">
 
-      {/* RESPONSIVE 3-PANEL LEARNING WORKSPACE */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        
-        {/* AREA 1: AI Tutor Conversation (Primary Interaction, ~35-40% or full width when canvas is hidden) */}
-        <div className={`transition-all duration-300 ${
-          showCanvas ? "lg:col-span-4" : "lg:col-span-8"
-        } h-[680px] lg:h-[720px]`}>
-          <AITutorChat
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            activeTopic={currentTopic}
-            studentState={studentState}
-            learnerProfile={profile}
-            onTriggerVisual={(payload) => {
-              setVisualPayload(payload);
-              setShowCanvas(true);
-            }}
-            onClearHistory={handleClearHistory}
-          />
+        {/* Chat Column */}
+        <div className={`flex flex-col min-h-0 transition-all duration-300 ${showCanvas ? "flex-[2] min-w-0" : "flex-1"}`}>
+          <div className="flex flex-col h-full bg-white/80 dark:bg-slate-900/70 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-md backdrop-blur-xl overflow-hidden">
+
+            {/* No Document Banner */}
+            {!activeDocument && (
+              <div className="mx-4 mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start space-x-2.5 text-xs">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-amber-800 dark:text-amber-300">No document selected</p>
+                  <p className="text-amber-600 dark:text-amber-400 mt-0.5">
+                    Select or upload a document from the navbar to get answers grounded in your study material with page citations.
+                    You can still ask general academic questions without a document.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Messages Stream */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+              {messages.length === 0 ? (
+                /* Empty State */
+                <div className="h-full flex flex-col items-center justify-center text-center py-8 space-y-4 max-w-sm mx-auto">
+                  <div className="p-4 bg-brand-50 dark:bg-brand-950/40 rounded-2xl text-brand-600 dark:text-brand-400 border border-brand-200/50 dark:border-brand-900/30">
+                    <MessageSquare className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
+                      {activeDocument ? `Ask about "${activeDocument.filename}"` : "Ask any academic question"}
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {activeDocument
+                        ? "Your answers will be grounded in your uploaded document with page number citations."
+                        : "Upload a document to get precise, cited answers from your study material."}
+                    </p>
+                  </div>
+
+                  {/* Quick Start Chips */}
+                  <div className="w-full space-y-1.5 pt-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-left">
+                      Quick questions:
+                    </p>
+                    {quickChips.map((chip) => (
+                      <button
+                        key={chip.label}
+                        onClick={() => sendMessage(chip.prompt)}
+                        disabled={isLoading}
+                        className="w-full text-left px-3 py-2 bg-slate-50 dark:bg-slate-800/60 hover:bg-brand-50 dark:hover:bg-brand-950/30 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-[11px] text-slate-700 dark:text-slate-300 font-medium transition-colors flex items-center justify-between group disabled:opacity-50"
+                      >
+                        <span>{chip.label}</span>
+                        <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-brand-500 transition-colors shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Message Bubbles */
+                <div className="space-y-4">
+                  {messages.map((msg, idx) => (
+                    <div key={idx} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                      {/* Bubble */}
+                      <div
+                        className={`max-w-[90%] rounded-2xl text-xs shadow-sm ${
+                          msg.role === "user"
+                            ? "bg-brand-600 text-white px-4 py-3 font-medium"
+                            : "bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 px-4 py-3 space-y-3"
+                        }`}
+                      >
+                        {/* AI Header */}
+                        {msg.role === "ai" && (
+                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <div className="flex items-center space-x-1.5 text-[10px] font-bold text-brand-600 dark:text-brand-400">
+                              <ModeIcon className="w-3 h-3" />
+                              <span>PrepPilot AI · {currentMode.label} mode</span>
+                            </div>
+                            <button
+                              onClick={() => handleCopy(msg.text, idx)}
+                              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-600"
+                              title="Copy answer"
+                            >
+                              {copiedIdx === idx ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Message Text */}
+                        <div className="leading-relaxed select-text">
+                          <MessageContent text={msg.text} />
+                        </div>
+
+                        {/* AI Extras */}
+                        {msg.role === "ai" && (
+                          <>
+                            {/* Prerequisites / Diagnosis */}
+                            {msg.prerequisite_diagnosis && (
+                              <div className="flex items-start space-x-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl text-[10px]">
+                                <Info className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="font-bold text-amber-700 dark:text-amber-300">Prerequisite / Confusion Point</p>
+                                  <p className="text-amber-600 dark:text-amber-400 mt-0.5">{msg.prerequisite_diagnosis}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Visual Canvas Trigger */}
+                            {msg.visual_payload && (
+                              <button
+                                onClick={() => {
+                                  setVisualPayload(msg.visual_payload);
+                                  setShowCanvas(true);
+                                }}
+                                className="w-full flex items-center justify-between px-3 py-2 bg-brand-50 dark:bg-brand-950/40 hover:bg-brand-100 dark:hover:bg-brand-900/50 border border-brand-200 dark:border-brand-800 rounded-xl text-[11px] font-bold text-brand-700 dark:text-brand-300 transition-colors group"
+                              >
+                                <div className="flex items-center space-x-1.5">
+                                  <Layers className="w-3.5 h-3.5 text-brand-500" />
+                                  <span>Open {msg.visual_payload?.title || "Visual Model"} on Canvas</span>
+                                </div>
+                                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                              </button>
+                            )}
+
+                            {/* Source Citations */}
+                            {msg.sources && msg.sources.length > 0 && (
+                              <div className="space-y-1">
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                  Document Sources ({msg.sources.length})
+                                </p>
+                                {msg.sources.map((src, sIdx) => (
+                                  <SourceCard key={sIdx} source={src} index={sIdx} />
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Follow-up Question Chips */}
+                            {msg.followup_questions && msg.followup_questions.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
+                                {msg.followup_questions.map((q, qIdx) => (
+                                  <button
+                                    key={qIdx}
+                                    onClick={() => sendMessage(q)}
+                                    disabled={isLoading}
+                                    className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/40 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 rounded-lg text-[10px] font-medium transition-all flex items-center space-x-1 disabled:opacity-50"
+                                  >
+                                    <Sparkles className="w-2.5 h-2.5 text-brand-400 shrink-0" />
+                                    <span><MathRenderer text={q} /></span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Loading indicator */}
+                  {isLoading && (
+                    <div className="flex items-start">
+                      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 flex items-center space-x-2 text-xs text-slate-400 shadow-sm">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-500" />
+                        <span>Thinking in <span className="font-semibold text-brand-600 dark:text-brand-400">{currentMode.label}</span> mode...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* Error Banner */}
+            {error && (
+              <div className="mx-4 mb-3 p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/60 rounded-xl flex items-start space-x-2 text-[11px]">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                <p className="text-rose-700 dark:text-rose-300">{error}</p>
+              </div>
+            )}
+
+            {/* Input Bar */}
+            <form
+              onSubmit={handleSubmit}
+              className="shrink-0 p-3 bg-white/95 dark:bg-slate-950/95 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center space-x-2"
+            >
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputQuestion}
+                  onChange={(e) => setInputQuestion(e.target.value)}
+                  placeholder={
+                    activeDocument
+                      ? `Ask about "${activeDocument.filename}"...`
+                      : "Ask any academic question..."
+                  }
+                  disabled={isLoading}
+                  className="w-full px-4 py-2.5 text-xs bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-950 transition-all disabled:opacity-50"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!inputQuestion.trim() || isLoading}
+                className="p-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl shadow-md shadow-brand-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
         </div>
 
-        {/* AREA 2: Visual Learning Canvas (Contextual Center Stage, ~40%) */}
+        {/* Visual Canvas Drawer */}
         {showCanvas && (
-          <div className="lg:col-span-5 h-[680px] lg:h-[720px] transition-all duration-300">
+          <div className="flex-[3] min-w-0 min-h-0 transition-all duration-300">
             <VisualCanvas
               visualPayload={visualPayload}
-              activeTopic={currentTopic}
-              onComponentClick={handleComponentClick}
+              activeTopic={activeDocument?.filename || "Study Session"}
+              onComponentClick={async (data) => {
+                await sendMessage(
+                  `Explain this component: ${data.component || data.role || JSON.stringify(data)}`
+                );
+              }}
             />
           </div>
         )}
-
-        {/* AREA 3: Compact Learning Insights (Right Dock, ~25%) */}
-        <div className={`transition-all duration-300 ${
-          showCanvas ? "lg:col-span-3" : "lg:col-span-4"
-        } h-[680px] lg:h-[720px]`}>
-          <CompactInsightsPanel
-            onTakeNextStep={handleNextStep}
-          />
-        </div>
-
       </div>
     </div>
-  );
-};
-
-export const ChatPage = () => {
-  return (
-    <LearnerProfileProvider>
-      <ChatPageContent />
-    </LearnerProfileProvider>
   );
 };
 

@@ -4,7 +4,8 @@ import {
   FileText, 
   Loader2, 
   AlertTriangle,
-  FileDown
+  FileDown,
+  RotateCcw
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
@@ -91,14 +92,13 @@ const RevisionPage = () => {
   };
 
   const parseBold = (content) => {
-    const parts = content.split(/\*\*(.*?)\*\"/g); // Supports bold matching
+    // Fix: correct regex for **bold** markdown pattern
+    const parts = content.split(/\*\*(.*?)\*\*/g);
     return parts.map((part, i) => {
       if (i % 2 === 1) {
         return <strong key={i} className="font-bold text-slate-800 dark:text-slate-200">{part}</strong>;
       }
-      // Direct parse double star replacements if regex split boundary edge misses
-      const cleanPart = part.replace(/\*\*/g, "");
-      return cleanPart;
+      return part;
     });
   };
 
@@ -134,6 +134,14 @@ const RevisionPage = () => {
             Analyzing document: <span className="font-semibold text-brand-500">{activeDocument.filename}</span>
           </p>
         </div>
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+          <span>{currentContent ? "Regenerate" : "Generate Sheet"}</span>
+        </button>
       </div>
 
       {/* Selector Tabs Row */}

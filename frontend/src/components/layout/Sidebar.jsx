@@ -11,7 +11,8 @@ import {
   History, 
   Settings,
   BookOpen,
-  FileDown
+  FileDown,
+  Zap
 } from "lucide-react";
 import { useDocuments } from "../../contexts/DocumentContext";
 
@@ -24,6 +25,7 @@ const Sidebar = () => {
     { name: "AI Learning Companion", path: "/chat", icon: MessageSquare, requiresDoc: false },
     { name: "Upload Documents", path: "/upload", icon: UploadCloud },
     { name: "Summary Generator", path: "/summary", icon: FileDown, requiresDoc: true },
+    { name: "Key Points", path: "/keypoints", icon: Zap, requiresDoc: true },
     { name: "MCQ Practice", path: "/mcqs", icon: HelpCircle, requiresDoc: true },
     { name: "Flashcards", path: "/flashcards", icon: Copy, requiresDoc: true },
     { name: "Interview Prep", path: "/interview", icon: Briefcase },

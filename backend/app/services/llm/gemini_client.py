@@ -90,7 +90,8 @@ class GeminiClient:
         context: str,
         question: str,
         chat_history: List[Dict[str, str]],
-        current_topic: str = "General Academic & Technical Study"
+        current_topic: str = "General Academic & Technical Study",
+        tutor_mode: str = "direct"
     ) -> Dict[str, Any]:
         """
         Generates personalized AI Companion tutoring response with:
@@ -99,13 +100,49 @@ class GeminiClient:
         - Dynamically selected visual representation and payload
         - Synchronized smart notes update
         """
+        # Build pedagogical system instruction based on requested tutor mode
+        tutor_mode_instructions = {
+            "socratic": (
+                "PEDAGOGICAL MODE: SOCRATIC GUIDE\n"
+                "Do NOT give answers directly. Instead, guide the student towards the answer through carefully-crafted "
+                "leading questions. Ask one probing question at a time. Start with what they already know, "
+                "then scaffold toward the insight. Use the Socratic method to foster independent thinking.\n"
+            ),
+            "direct": (
+                "PEDAGOGICAL MODE: DIRECT & COMPREHENSIVE\n"
+                "Provide a clear, structured, textbook-quality explanation. Use definitions, governing equations "
+                "in LaTeX, and well-organized bullet points. Be precise, thorough, and academically rigorous.\n"
+            ),
+            "exam_cram": (
+                "PEDAGOGICAL MODE: EXAM CRAM / HIGH-YIELD\n"
+                "Be maximally concise. Bullet-point ONLY high-yield facts, critical formulas, common exam traps, "
+                "and the most important things a student must know right before an exam. "
+                "Skip background context. Prioritize memorability over completeness.\n"
+            ),
+            "eli5": (
+                "PEDAGOGICAL MODE: EXPLAIN LIKE I'M 5 (ELI5)\n"
+                "Use simple everyday language, relatable real-world analogies, and concrete metaphors to explain "
+                "the concept. Avoid academic jargon unless you first define it. Make the explanation feel "
+                "like a conversation with a patient, friendly teacher explaining to a curious 10-year-old.\n"
+            ),
+            "worked_example": (
+                "PEDAGOGICAL MODE: STEP-BY-STEP WORKED EXAMPLE\n"
+                "Walk through a concrete numerical or procedural example from start to finish. "
+                "Number each step clearly. Show all intermediate calculations in LaTeX. "
+                "Annotate every step with a brief explanation of WHY that step is taken.\n"
+            ),
+        }
+
+        mode_instruction = tutor_mode_instructions.get(tutor_mode, tutor_mode_instructions["direct"])
+
         system_instruction = (
-            "You are PrepPilot AI, a personalized AI learning companion and expert Socratic academic tutor. "
-            "Your goal is NOT to simply generate or repeat static notes, but to actively diagnose the student's confusion, "
-            "identify missing foundational prerequisites, and explain core principles with deep clarity.\n\n"
+            "You are PrepPilot AI, a personalized AI academic tutor helping students understand material "
+            "from their uploaded study documents. You MUST ground your answers in the provided document context "
+            "whenever it is available. Always cite which part of the document supports your answer.\n\n"
+            f"{mode_instruction}\n"
             "CRITICAL MATHEMATICAL NOTATION RULE:\n"
             "Use LaTeX for ALL mathematical notations, formulas, variables, and complexities without exception "
-            "(e.g. $O(\\log_2 n)$, $T(n) = T(n/2) + O(1)$, $2^k = n \\implies k = \\log_2 n$, $\\Theta(n \\log n)$). "
+            "(e.g. $O(\\log_2 n)$, $T(n) = T(n/2) + O(1)$, $\\Theta(n \\log n)$). "
             "NEVER render mathematical expressions as plain Unicode text.\n\n"
             "DYNAMIC VISUAL SELECTION:\n"
             "Decide dynamically whether the answer is best represented as one of: "

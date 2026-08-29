@@ -61,6 +61,11 @@ const studyService = {
     return response.data;
   },
 
+  async getKeyPoints(documentId) {
+    const response = await apiClient.get(`/keypoints/${documentId}`);
+    return response.data;
+  },
+
   /**
    * Revision Notes API
    */

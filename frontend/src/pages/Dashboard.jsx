@@ -9,7 +9,8 @@ import {
   UploadCloud, 
   ChevronRight,
   BookOpen,
-  Copy
+  Copy,
+  Zap
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 
@@ -25,12 +26,21 @@ const Dashboard = () => {
   const quickActions = [
     { 
       name: "AI Learning Companion", 
-      desc: "3-connected workspace: AI Socratic Tutor, Visual Canvas & Smart Notes.", 
+      desc: "Ask questions about your PDF — choose Socratic, ELI5, Exam Cram or Worked Example mode.", 
       path: "/chat", 
       icon: MessageSquare, 
       color: "from-brand-600 to-indigo-600",
-      badge: "Core Redesign",
+      badge: "Core Feature",
       requiresDoc: false 
+    },
+    { 
+      name: "Key Points Extractor", 
+      desc: "Extract the most important concepts, formulas, and exam-critical ideas — ranked by priority.", 
+      path: "/keypoints", 
+      icon: Zap, 
+      color: "from-amber-500 to-orange-500",
+      badge: "New",
+      requiresDoc: true 
     },
     { 
       name: "Document Summarizer", 
@@ -53,7 +63,7 @@ const Dashboard = () => {
       desc: "Scan resume against JDs to compile technical mock panels.", 
       path: "/interview", 
       icon: Briefcase, 
-      color: "from-amber-500 to-orange-500",
+      color: "from-rose-500 to-pink-500",
       requiresDoc: false 
     }
   ];

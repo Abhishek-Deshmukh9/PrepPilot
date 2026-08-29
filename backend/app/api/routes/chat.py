@@ -93,7 +93,8 @@ async def chat_with_document(
         companion_result = await gemini_client.generate_companion_response(
             context=context,
             question=request.question,
-            chat_history=chat_history_list
+            chat_history=chat_history_list,
+            tutor_mode=request.tutor_mode or "direct"
         )
         answer = companion_result.get("answer", "")
         prerequisite_diagnosis = companion_result.get("prerequisite_diagnosis")

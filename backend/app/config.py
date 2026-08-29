@@ -1,6 +1,10 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from dotenv import load_dotenv
+import os
 
+# Ensure .env values take precedence over system env variables
+load_dotenv(override=True)
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -18,7 +22,7 @@ class Settings(BaseSettings):
 
     # Gemini AI
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash"
 
     # Storage
     upload_dir: str = "./uploads"
@@ -31,7 +35,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./preppilot.db"
 
     # Embedding Model
-    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_model: str = "gemini-embedding-001"
 
     # RAG Config
     chunk_size: int = 500

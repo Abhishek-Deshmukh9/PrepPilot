@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import UploadPage from "./pages/UploadPage";
 import ChatPage from "./pages/ChatPage";
 import SummaryPage from "./pages/SummaryPage";
+import KeyPointsPage from "./pages/KeyPointsPage";
 import MCQPage from "./pages/MCQPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
 import InterviewPage from "./pages/InterviewPage";
@@ -27,6 +28,7 @@ function App() {
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/summary" element={<SummaryPage />} />
+              <Route path="/keypoints" element={<KeyPointsPage />} />
               <Route path="/mcqs" element={<MCQPage />} />
               <Route path="/flashcards" element={<FlashcardsPage />} />
               <Route path="/interview" element={<InterviewPage />} />

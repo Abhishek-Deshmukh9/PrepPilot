@@ -14,11 +14,9 @@ pydantic-settings==2.2.1
 
 # AI & Embeddings
 google-genai==2.7.0
-sentence-transformers==3.0.1
-torch>=2.6.0
 
 # Vector Database
-chromadb==0.5.0
+chromadb>=0.5.23
 
 # Document Processing
 PyPDF2==3.0.1
@@ -32,7 +30,6 @@ slowapi==0.1.9
 python-dotenv==1.0.1
 httpx>=0.28.1
 aiofiles==23.2.1
-uuid==1.30
 tenacity==8.3.0
 
 # Testing

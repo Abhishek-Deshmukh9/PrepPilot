@@ -34,7 +34,7 @@ import DataStructureVisualizer from "./visualizers/DataStructureVisualizer";
 
 export const VisualCanvas = ({
   visualPayload = null,
-  activeTopic = "Binary Search Complexity",
+  activeTopic = "Study Session",
   onComponentClick = null,
   className = ""
 }) => {
@@ -67,21 +67,21 @@ graph TD
     style I fill:#f43f5e,stroke:#e11d48,color:#fff
   `.trim();
 
-  // Navigation tab configs
+  // Navigation tab configs — generic labels, content is driven by visualPayload from AI
   const standardTabs = [
-    { id: "study_navigator", label: "Study Navigator", icon: Compass, badge: "Mentor" },
-    { id: "knowledge_graph", label: "Knowledge Graph", icon: BrainCircuit, badge: "Evolving Map" },
-    { id: "step_by_step_visualization", label: "Array Halving", icon: Layers, badge: "Animation" },
-    { id: "osi_model", label: "OSI 7-Layer Stack", icon: Network, badge: "Encapsulation" },
-    { id: "tcp_handshake", label: "TCP 3-Way Handshake", icon: ShieldCheck, badge: "SYN/ACK" },
-    { id: "dbms_normalization", label: "DBMS Normalization", icon: Database, badge: "1NF→3NF" },
-    { id: "physics_vectors", label: "Newton's Force Vectors", icon: Compass, badge: "F=ma" },
-    { id: "data_structure", label: "BST Data Structure", icon: GitBranch, badge: "Tree" },
-    { id: "mathematical_derivation", label: "LaTeX Proof", icon: Calculator, badge: "LaTeX" },
-    { id: "graph", label: "Complexity Curves", icon: TrendingUp, badge: "O(log n)" },
-    { id: "diagram", label: "Mermaid Flowchart", icon: GitFork, badge: "Diagram" },
-    { id: "comparison", label: "Trade-offs Matrix", icon: Scale, badge: "Matrix" },
-    { id: "code_visualization", label: "Code Debugger", icon: Code2, badge: "Python" }
+    { id: "study_navigator", label: "Study Navigator", icon: Compass, badge: "AI Mentor" },
+    { id: "knowledge_graph", label: "Knowledge Graph", icon: BrainCircuit, badge: "Concept Map" },
+    { id: "step_by_step_visualization", label: "Step-by-Step", icon: Layers, badge: "Animation" },
+    { id: "mathematical_derivation", label: "Math Proof", icon: Calculator, badge: "LaTeX" },
+    { id: "graph", label: "Complexity Graph", icon: TrendingUp, badge: "O(n)" },
+    { id: "diagram", label: "Flowchart", icon: GitFork, badge: "Diagram" },
+    { id: "comparison", label: "Comparison", icon: Scale, badge: "Matrix" },
+    { id: "code_visualization", label: "Code Trace", icon: Code2, badge: "Debugger" },
+    { id: "osi_model", label: "Network Layers", icon: Network, badge: "OSI" },
+    { id: "tcp_handshake", label: "Handshake", icon: ShieldCheck, badge: "TCP" },
+    { id: "dbms_normalization", label: "Normalization", icon: Database, badge: "DBMS" },
+    { id: "physics_vectors", label: "Force Vectors", icon: Compass, badge: "Physics" },
+    { id: "data_structure", label: "Data Structure", icon: GitBranch, badge: "Tree/Graph" },
   ];
 
   return (
@@ -195,13 +195,23 @@ graph TD
           />
         )}
 
-        {/* Array Halving Simulation */}
+        {/* Step-by-Step Visualizer — only renders with AI payload or as fallback */}
         {(activeTab === "step_by_step_visualization" || activeTab === "auto") && (
-          <StepByStepVisualizer
-            initialArray={visualPayload?.array || [2, 5, 8, 12, 16, 23, 38, 45, 56, 72, 84, 91, 98, 105, 120, 142]}
-            defaultTarget={visualPayload?.target || 23}
-            topic={visualPayload?.title || activeTopic}
-          />
+          visualPayload?.array ? (
+            <StepByStepVisualizer
+              initialArray={visualPayload.array}
+              defaultTarget={visualPayload.target}
+              topic={visualPayload.title || activeTopic}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12 space-y-3">
+              <Layers className="w-10 h-10 text-slate-300 dark:text-slate-700" />
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No step-by-step data yet</p>
+              <p className="text-xs text-slate-400 max-w-xs">
+                Ask the AI a question that involves an algorithm or process — it will auto-generate an interactive visualization here.
+              </p>
+            </div>
+          )
         )}
 
         {/* Mathematical Derivation */}
