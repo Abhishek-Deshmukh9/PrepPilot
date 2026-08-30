@@ -36,45 +36,45 @@ const TUTOR_MODES = [
     label: "Socratic",
     description: "Guided discovery through questions",
     icon: GraduationCap,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800",
-    activeBg: "bg-purple-600 text-white border-purple-600 shadow-purple-500/20"
+    color: "text-purple-400",
+    bg: "bg-purple-950/30 border-purple-500/20 text-purple-300",
+    activeBg: "bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/20"
   },
   {
     id: "direct",
     label: "Direct",
     description: "Clear, structured explanation",
     icon: BookOpenCheck,
-    color: "text-brand-600 dark:text-brand-400",
-    bg: "bg-brand-50 dark:bg-brand-950/40 border-brand-200 dark:border-brand-800",
-    activeBg: "bg-brand-600 text-white border-brand-600 shadow-brand-500/20"
+    color: "text-sky-400",
+    bg: "bg-sky-950/30 border-sky-500/20 text-sky-300",
+    activeBg: "bg-sky-500 text-white border-sky-400 shadow-lg shadow-sky-500/20"
   },
   {
     id: "exam_cram",
     label: "Exam Cram",
     description: "High-yield bullets & formulas only",
     icon: Sparkles,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800",
-    activeBg: "bg-amber-500 text-white border-amber-500 shadow-amber-500/20"
+    color: "text-amber-400",
+    bg: "bg-amber-950/30 border-amber-500/20 text-amber-300",
+    activeBg: "bg-amber-500 text-white border-amber-400 shadow-lg shadow-amber-500/20"
   },
   {
     id: "eli5",
     label: "ELI5",
     description: "Simple language & analogies",
     icon: Lightbulb,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800",
-    activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-emerald-500/20"
+    color: "text-emerald-400",
+    bg: "bg-emerald-950/30 border-emerald-500/20 text-emerald-300",
+    activeBg: "bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-500/20"
   },
   {
     id: "worked_example",
     label: "Worked Example",
     description: "Step-by-step with calculations",
     icon: FlaskConical,
-    color: "text-rose-600 dark:text-rose-400",
-    bg: "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800",
-    activeBg: "bg-rose-600 text-white border-rose-600 shadow-rose-500/20"
+    color: "text-rose-400",
+    bg: "bg-rose-950/30 border-rose-500/20 text-rose-300",
+    activeBg: "bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-500/20"
   }
 ];
 
@@ -93,29 +93,29 @@ const SourceCard = ({ source, index }) => {
   const [expanded, setExpanded] = useState(false);
   const score = Math.round((source.score || 0) * 100);
   return (
-    <div className="border border-slate-200/80 dark:border-slate-800/80 rounded-xl overflow-hidden text-[10px]">
+    <div className="border border-white/[0.08] rounded-xl overflow-hidden text-[10px]">
       <button
         onClick={() => setExpanded((p) => !p)}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-left"
+        className="w-full flex items-center justify-between px-3 py-2 bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-left"
       >
-        <div className="flex items-center space-x-2">
-          <FileText className="w-3 h-3 text-brand-500 shrink-0" />
-          <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-40">
-            {source.filename || "Document"}
+        <div className="flex items-center space-x-2 min-w-0">
+          <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <span className="font-semibold text-slate-300 truncate max-w-[180px]">
+            {source.filename || "Document Source"}
           </span>
           {source.page && (
-            <span className="px-1.5 py-0.5 bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 rounded font-bold">
+            <span className="px-1.5 py-0.2 bg-sky-500/10 text-sky-300 rounded font-mono font-bold">
               p.{source.page}
             </span>
           )}
         </div>
         <div className="flex items-center space-x-1.5 shrink-0">
-          <span className="text-slate-400">{score}% match</span>
+          <span className="text-slate-400 font-mono">{score}% match</span>
           {expanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
         </div>
       </button>
       {expanded && (
-        <div className="px-2.5 py-2 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800">
+        <div className="px-3 py-2.5 bg-black/30 text-slate-300 leading-relaxed border-t border-white/[0.06] font-mono text-[10px]">
           {source.text_snippet}
         </div>
       )}
@@ -237,30 +237,33 @@ const ChatPage = () => {
 
   // ─── Quick Prompt Chips ────────────────────────────────────────────────────
   const quickChips = [
-    { label: "Summarize this", prompt: "Summarize the key points from this document" },
-    { label: "Define key terms", prompt: "What are the most important terms and definitions in this document?" },
-    { label: "What are the main concepts?", prompt: "What are the main concepts I need to understand from this document?" },
-    { label: "Give me exam questions", prompt: "What types of questions might appear in an exam on this material?" },
-    { label: "Explain simply", prompt: "Explain the core idea of this document in simple terms" },
+    { label: "Summarize core concepts", prompt: "Summarize the key points and core concepts from this document" },
+    { label: "Define essential formulas", prompt: "What are the most important terms, formulas, and definitions in this document?" },
+    { label: "Generate practice exam questions", prompt: "What exam questions might be asked about this material?" },
+    { label: "Explain in simple terms (ELI5)", prompt: "Explain the main thesis and core idea of this document with intuitive analogies" },
+    { label: "Show step-by-step worked example", prompt: "Walk me step-by-step through a concrete worked example based on this topic" },
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem-3rem)] gap-0">
+    <div className="flex flex-col h-[calc(100vh-4rem-3.5rem)] gap-0 animate-slide-up">
 
       {/* ── Header Bar ── */}
-      <div className="shrink-0 px-4 pt-1 pb-3 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center space-x-2.5">
-          <div className="p-2 rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/20">
+      <div className="shrink-0 px-2 sm:px-4 pt-1 pb-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/20">
             <Brain className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
-              Ask AI Anything
+            <h1 className="text-base font-bold text-slate-100 leading-tight flex items-center gap-2">
+              <span>Ask AI Anything</span>
+              <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold uppercase">
+                {currentMode.label}
+              </span>
             </h1>
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-xs text-slate-400">
               {activeDocument
-                ? `Studying: ${activeDocument.filename}`
-                : "Upload a document to get document-grounded answers"}
+                ? `Active Context: ${activeDocument.filename}`
+                : "General Academic Tutor (Upload a guide for cited answers)"}
             </p>
           </div>
         </div>
@@ -271,8 +274,8 @@ const ChatPage = () => {
             onClick={() => setShowCanvas((s) => !s)}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
               showCanvas
-                ? "bg-brand-50 dark:bg-brand-950/40 border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-300"
-                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-brand-300"
+                ? "bg-sky-500/15 border-sky-500/30 text-sky-300"
+                : "bg-white/[0.04] border-white/[0.08] text-slate-400 hover:text-slate-200 hover:border-white/20"
             }`}
           >
             {showCanvas ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
@@ -283,7 +286,7 @@ const ChatPage = () => {
           {messages.length > 0 && (
             <button
               onClick={handleClearHistory}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border border-transparent hover:border-rose-200/50"
+              className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/20"
               title="Reset conversation"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -293,11 +296,11 @@ const ChatPage = () => {
       </div>
 
       {/* ── Tutor Mode Selector ── */}
-      <div className="shrink-0 px-4 pb-3">
-        <div className="bg-white/80 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-2 shadow-sm backdrop-blur-sm">
+      <div className="shrink-0 px-2 sm:px-4 pb-3">
+        <div className="glass-panel rounded-2xl p-2 shadow-sm">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0 px-1">
-              Tutor Mode:
+            <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-slate-500 shrink-0 px-2">
+              MODE:
             </span>
             {TUTOR_MODES.map((mode) => {
               const Icon = mode.icon;
@@ -307,13 +310,13 @@ const ChatPage = () => {
                   key={mode.id}
                   onClick={() => setTutorMode(mode.id)}
                   title={mode.description}
-                  className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 border transition-all ${
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 border transition-all ${
                     isActive
-                      ? `${mode.activeBg} shadow-md`
-                      : `${mode.bg} ${mode.color} hover:opacity-80`
+                      ? `${mode.activeBg}`
+                      : `${mode.bg} hover:border-white/30`
                   }`}
                 >
-                  <Icon className="w-3 h-3" />
+                  <Icon className="w-3.5 h-3.5" />
                   <span>{mode.label}</span>
                 </button>
               );
@@ -322,62 +325,63 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* ── Main Content: Chat + Canvas ── */}
-      <div className="flex-1 flex gap-4 px-4 pb-4 min-h-0">
+      {/* ── Main Content: Chat Stream + Canvas ── */}
+      <div className="flex-1 flex gap-4 px-2 sm:px-4 pb-2 min-h-0">
 
         {/* Chat Column */}
         <div className={`flex flex-col min-h-0 transition-all duration-300 ${showCanvas ? "flex-[2] min-w-0" : "flex-1"}`}>
-          <div className="flex flex-col h-full bg-white/80 dark:bg-slate-900/70 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-md backdrop-blur-xl overflow-hidden">
+          <div className="flex flex-col h-full glass-panel rounded-3xl overflow-hidden">
 
             {/* No Document Banner */}
             {!activeDocument && (
-              <div className="mx-4 mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start space-x-2.5 text-xs">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="mx-4 mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start space-x-2.5 text-xs">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-amber-800 dark:text-amber-300">No document selected</p>
-                  <p className="text-amber-600 dark:text-amber-400 mt-0.5">
-                    Select or upload a document from the navbar to get answers grounded in your study material with page citations.
-                    You can still ask general academic questions without a document.
+                  <p className="font-semibold text-amber-300">No study guide selected</p>
+                  <p className="text-amber-200/80 mt-0.5 text-[11px]">
+                    Select an uploaded document in the top navbar to get answers grounded in your notes with page citations. You can still ask any general academic question right now.
                   </p>
                 </div>
               </div>
             )}
 
             {/* Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 min-h-0">
               {messages.length === 0 ? (
                 /* Empty State */
-                <div className="h-full flex flex-col items-center justify-center text-center py-8 space-y-4 max-w-sm mx-auto">
-                  <div className="p-4 bg-brand-50 dark:bg-brand-950/40 rounded-2xl text-brand-600 dark:text-brand-400 border border-brand-200/50 dark:border-brand-900/30">
-                    <MessageSquare className="w-7 h-7" />
+                <div className="h-full flex flex-col items-center justify-center text-center py-8 space-y-4 max-w-md mx-auto">
+                  <div className="p-4 bg-sky-500/10 rounded-2xl text-sky-400 border border-sky-500/20 shadow-inner">
+                    <MessageSquare className="w-8 h-8 animate-pulse-subtle" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-                      {activeDocument ? `Ask about "${activeDocument.filename}"` : "Ask any academic question"}
+                    <h3 className="font-display text-base font-bold text-slate-100 mb-1">
+                      {activeDocument ? `Ask anything from "${activeDocument.filename}"` : "Ask any academic concept"}
                     </h3>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
                       {activeDocument
-                        ? "Your answers will be grounded in your uploaded document with page number citations."
-                        : "Upload a document to get precise, cited answers from your study material."}
+                        ? "Answers will cite exact source chunks and page numbers from your uploaded document."
+                        : "Choose a tutor mode above to tailor explanations from high-yield cramming to deep Socratic guidance."}
                     </p>
                   </div>
 
                   {/* Quick Start Chips */}
-                  <div className="w-full space-y-1.5 pt-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-left">
-                      Quick questions:
+                  <div className="w-full space-y-2 pt-2">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-500 text-left">
+                      QUICK INQUIRIES:
                     </p>
-                    {quickChips.map((chip) => (
-                      <button
-                        key={chip.label}
-                        onClick={() => sendMessage(chip.prompt)}
-                        disabled={isLoading}
-                        className="w-full text-left px-3 py-2 bg-slate-50 dark:bg-slate-800/60 hover:bg-brand-50 dark:hover:bg-brand-950/30 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-[11px] text-slate-700 dark:text-slate-300 font-medium transition-colors flex items-center justify-between group disabled:opacity-50"
-                      >
-                        <span>{chip.label}</span>
-                        <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-brand-500 transition-colors shrink-0" />
-                      </button>
-                    ))}
+                    <div className="grid grid-cols-1 gap-2">
+                      {quickChips.map((chip) => (
+                        <button
+                          key={chip.label}
+                          onClick={() => sendMessage(chip.prompt)}
+                          disabled={isLoading}
+                          className="w-full text-left px-3.5 py-2.5 bg-white/[0.03] hover:bg-sky-500/10 border border-white/[0.06] hover:border-sky-500/30 rounded-xl text-xs text-slate-300 font-medium transition-all flex items-center justify-between group disabled:opacity-50"
+                        >
+                          <span>{chip.label}</span>
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-sky-400 transition-colors shrink-0" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -387,31 +391,31 @@ const ChatPage = () => {
                     <div key={idx} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
                       {/* Bubble */}
                       <div
-                        className={`max-w-[90%] rounded-2xl text-xs shadow-sm ${
+                        className={`max-w-[92%] rounded-2xl text-xs shadow-md ${
                           msg.role === "user"
-                            ? "bg-brand-600 text-white px-4 py-3 font-medium"
-                            : "bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 px-4 py-3 space-y-3"
+                            ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white px-4 py-3 font-medium shadow-sky-500/10"
+                            : "bg-[#0c1017] border border-white/[0.08] text-slate-100 px-4 sm:px-5 py-4 space-y-3.5"
                         }`}
                       >
                         {/* AI Header */}
                         {msg.role === "ai" && (
-                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                            <div className="flex items-center space-x-1.5 text-[10px] font-bold text-brand-600 dark:text-brand-400">
-                              <ModeIcon className="w-3 h-3" />
-                              <span>PrepPilot AI · {currentMode.label} mode</span>
+                          <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                            <div className="flex items-center space-x-2 text-[11px] font-bold text-sky-400">
+                              <ModeIcon className="w-3.5 h-3.5" />
+                              <span className="font-mono text-[10px] tracking-wider uppercase">PrepPilot AI · {currentMode.label}</span>
                             </div>
                             <button
                               onClick={() => handleCopy(msg.text, idx)}
-                              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-600"
+                              className="p-1 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-slate-200"
                               title="Copy answer"
                             >
-                              {copiedIdx === idx ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                              {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                             </button>
                           </div>
                         )}
 
                         {/* Message Text */}
-                        <div className="leading-relaxed select-text">
+                        <div className="leading-relaxed select-text text-slate-200 text-xs sm:text-sm">
                           <MessageContent text={msg.text} />
                         </div>
 
@@ -420,11 +424,11 @@ const ChatPage = () => {
                           <>
                             {/* Prerequisites / Diagnosis */}
                             {msg.prerequisite_diagnosis && (
-                              <div className="flex items-start space-x-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl text-[10px]">
-                                <Info className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                              <div className="flex items-start space-x-2.5 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px]">
+                                <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                                 <div>
-                                  <p className="font-bold text-amber-700 dark:text-amber-300">Prerequisite / Confusion Point</p>
-                                  <p className="text-amber-600 dark:text-amber-400 mt-0.5">{msg.prerequisite_diagnosis}</p>
+                                  <p className="font-bold text-amber-300">Prerequisite Concept Insight</p>
+                                  <p className="text-amber-200/90 mt-0.5">{msg.prerequisite_diagnosis}</p>
                                 </div>
                               </div>
                             )}
@@ -436,21 +440,21 @@ const ChatPage = () => {
                                   setVisualPayload(msg.visual_payload);
                                   setShowCanvas(true);
                                 }}
-                                className="w-full flex items-center justify-between px-3 py-2 bg-brand-50 dark:bg-brand-950/40 hover:bg-brand-100 dark:hover:bg-brand-900/50 border border-brand-200 dark:border-brand-800 rounded-xl text-[11px] font-bold text-brand-700 dark:text-brand-300 transition-colors group"
+                                className="w-full flex items-center justify-between px-3.5 py-2.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-xl text-xs font-bold text-sky-300 transition-colors group"
                               >
-                                <div className="flex items-center space-x-1.5">
-                                  <Layers className="w-3.5 h-3.5 text-brand-500" />
-                                  <span>Open {msg.visual_payload?.title || "Visual Model"} on Canvas</span>
+                                <div className="flex items-center space-x-2">
+                                  <Layers className="w-4 h-4 text-sky-400" />
+                                  <span>Launch {msg.visual_payload?.title || "Visual Model"} on Canvas</span>
                                 </div>
-                                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                               </button>
                             )}
 
                             {/* Source Citations */}
                             {msg.sources && msg.sources.length > 0 && (
-                              <div className="space-y-1">
-                                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                                  Document Sources ({msg.sources.length})
+                              <div className="space-y-1.5 pt-1">
+                                <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                  DOCUMENT CITATIONS ({msg.sources.length})
                                 </p>
                                 {msg.sources.map((src, sIdx) => (
                                   <SourceCard key={sIdx} source={src} index={sIdx} />
@@ -460,15 +464,15 @@ const ChatPage = () => {
 
                             {/* Follow-up Question Chips */}
                             {msg.followup_questions && msg.followup_questions.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
+                              <div className="flex flex-wrap gap-2 pt-2 border-t border-white/[0.06]">
                                 {msg.followup_questions.map((q, qIdx) => (
                                   <button
                                     key={qIdx}
                                     onClick={() => sendMessage(q)}
                                     disabled={isLoading}
-                                    className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/40 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 rounded-lg text-[10px] font-medium transition-all flex items-center space-x-1 disabled:opacity-50"
+                                    className="px-3 py-1.5 bg-white/[0.04] hover:bg-sky-500/10 border border-white/[0.08] hover:border-sky-500/30 text-slate-300 hover:text-sky-300 rounded-xl text-[11px] font-medium transition-all flex items-center space-x-1.5 disabled:opacity-50"
                                   >
-                                    <Sparkles className="w-2.5 h-2.5 text-brand-400 shrink-0" />
+                                    <Sparkles className="w-3 h-3 text-sky-400 shrink-0" />
                                     <span><MathRenderer text={q} /></span>
                                   </button>
                                 ))}
@@ -483,9 +487,9 @@ const ChatPage = () => {
                   {/* Loading indicator */}
                   {isLoading && (
                     <div className="flex items-start">
-                      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 flex items-center space-x-2 text-xs text-slate-400 shadow-sm">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-500" />
-                        <span>Thinking in <span className="font-semibold text-brand-600 dark:text-brand-400">{currentMode.label}</span> mode...</span>
+                      <div className="bg-[#0c1017] border border-white/[0.08] rounded-2xl px-4 py-3 flex items-center space-x-2.5 text-xs text-slate-400 shadow-md">
+                        <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+                        <span>Generating response in <span className="font-semibold text-sky-300">{currentMode.label}</span> mode...</span>
                       </div>
                     </div>
                   )}
@@ -496,16 +500,16 @@ const ChatPage = () => {
 
             {/* Error Banner */}
             {error && (
-              <div className="mx-4 mb-3 p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/60 rounded-xl flex items-start space-x-2 text-[11px]">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
-                <p className="text-rose-700 dark:text-rose-300">{error}</p>
+              <div className="mx-4 mb-3 p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start space-x-2 text-xs">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <p className="text-rose-300">{error}</p>
               </div>
             )}
 
             {/* Input Bar */}
             <form
               onSubmit={handleSubmit}
-              className="shrink-0 p-3 bg-white/95 dark:bg-slate-950/95 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center space-x-2"
+              className="shrink-0 p-3 bg-[#07090e]/90 border-t border-white/[0.06] flex items-center space-x-2"
             >
               <div className="flex-1 relative">
                 <input
@@ -516,16 +520,16 @@ const ChatPage = () => {
                   placeholder={
                     activeDocument
                       ? `Ask about "${activeDocument.filename}"...`
-                      : "Ask any academic question..."
+                      : "Ask any academic concept..."
                   }
                   disabled={isLoading}
-                  className="w-full px-4 py-2.5 text-xs bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-950 transition-all disabled:opacity-50"
+                  className="w-full px-4 py-3 text-xs bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.08] focus:border-sky-500/50 rounded-2xl text-slate-100 placeholder-slate-500 focus:outline-none focus:bg-[#0c1017] transition-all disabled:opacity-50"
                 />
               </div>
               <button
                 type="submit"
                 disabled={!inputQuestion.trim() || isLoading}
-                className="p-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl shadow-md shadow-brand-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+                className="p-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl shadow-lg shadow-sky-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
               >
                 <Send className="w-4 h-4" />
               </button>

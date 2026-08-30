@@ -22,7 +22,6 @@ const RevisionPage = () => {
     important_questions: ""
   });
 
-  // Fetch existing revision notes on mount or doc swap
   useEffect(() => {
     const fetchExisting = async () => {
       if (!activeDocument) return;
@@ -63,52 +62,50 @@ const RevisionPage = () => {
     }
   };
 
-
-
   if (!activeDocument) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto space-y-4">
-        <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-full text-amber-500 border border-amber-100/50 dark:border-amber-900/30">
-          <FileText className="h-6 w-6" />
+      <div className="h-[60vh] flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto space-y-4 animate-slide-up">
+        <div className="bg-sky-500/10 p-4 rounded-2xl text-sky-400 border border-sky-500/20 shadow-inner">
+          <FileText className="h-8 w-8 animate-pulse-subtle" />
         </div>
-        <h3 className="font-display text-md font-bold">Select Document for Revision Sheets</h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-          Open the sidebar and pick a study guide. Once active, this tool compiles dense revision cheat sheets.
+        <h3 className="font-display text-base font-bold text-slate-100">Select Study Document</h3>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Open the navigation and select an active guide to compile dense last-minute revision notes and exam cheat sheets.
         </p>
       </div>
     );
   }
 
   const tabs = [
-    { id: "last_minute", name: "Last Minute Sheet" },
-    { id: "cheat_sheet", name: "Cheat Sheet Guide" },
-    { id: "important_questions", name: "Important Q&A" }
+    { id: "last_minute", name: "Last-Minute High-Yield" },
+    { id: "cheat_sheet", name: "Formula & Cheat Sheet" },
+    { id: "important_questions", name: "Core Exam Q&A" }
   ];
 
   const currentContent = revisions[activeTab];
 
   return (
-    <div className="space-y-6">
-      {/* Header details */}
+    <div className="space-y-6 pb-8 animate-slide-up">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Revision Sheets</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Analyzing document: <span className="font-semibold text-brand-500">{activeDocument.filename}</span>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-100">Revision Sheets</h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Analyzing: <span className="font-semibold text-sky-400">{activeDocument.filename}</span>
           </p>
         </div>
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
+          className="flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-sky-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
           <span>{currentContent ? "Regenerate" : "Generate Sheet"}</span>
         </button>
       </div>
 
-      {/* Selector Tabs Row */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+      {/* Tabs Row */}
+      <div className="flex border-b border-white/[0.08] overflow-x-auto scrollbar-none">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -116,10 +113,10 @@ const RevisionPage = () => {
               setActiveTab(t.id);
               setErrorMsg("");
             }}
-            className={`px-5 py-3 text-xs font-semibold border-b-2 transition-all -mb-px shrink-0 ${
+            className={`px-5 py-3 text-xs font-semibold font-mono border-b-2 transition-all -mb-px shrink-0 ${
               activeTab === t.id
-                ? "border-brand-500 text-brand-600 dark:text-brand-400"
-                : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                ? "border-sky-400 text-sky-300 font-bold"
+                : "border-transparent text-slate-400 hover:text-slate-200"
             }`}
           >
             {t.name}
@@ -128,16 +125,16 @@ const RevisionPage = () => {
       </div>
 
       {/* Main Content Render Box */}
-      <div className="glass-panel rounded-3xl p-6 md:p-8 border border-slate-200/50 dark:border-slate-800/50 shadow-sm relative min-h-[300px]">
-        {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm z-10 rounded-3xl">
-            <Loader2 className="h-8 w-8 animate-spin text-brand-500 mb-2" />
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Generating Revision Notes with Gemini...</p>
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 relative min-h-[350px]">
+        {loading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-md z-10 rounded-3xl space-y-3">
+            <Loader2 className="h-8 w-8 animate-spin text-sky-400" />
+            <p className="text-xs font-semibold text-slate-200">Compiling revision cheat sheet with Gemini...</p>
           </div>
-        ) : null}
+        )}
 
         {errorMsg && (
-          <div className="mb-4 flex items-center space-x-1.5 text-xs text-rose-500 font-semibold bg-rose-500/10 px-3 py-2.5 rounded-xl border border-rose-500/20">
+          <div className="mb-4 flex items-center space-x-2 text-xs text-rose-400 font-semibold bg-rose-500/10 px-4 py-3 rounded-2xl border border-rose-500/20">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -149,20 +146,22 @@ const RevisionPage = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center py-16 space-y-4 max-w-sm mx-auto">
-            <div className="bg-brand-50 dark:bg-brand-950/40 p-4 rounded-full text-brand-600 dark:text-brand-400">
-              <Sparkles className="h-6 w-6 animate-pulse-subtle" />
+            <div className="bg-sky-500/10 p-4 rounded-2xl text-sky-400 border border-sky-500/20 shadow-inner">
+              <Sparkles className="h-7 w-7 animate-pulse-subtle" />
             </div>
-            <h3 className="font-display text-sm font-bold">No sheet compiled</h3>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
-              Compile notes under this guide format. PrepPilot triggers Gemini API parsing to generate the requested sheet layout.
-            </p>
+            <div className="space-y-1">
+              <h3 className="font-display text-base font-bold text-slate-100">No revision sheet compiled</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Click below to synthesize a dense, high-yield {tabs.find(t => t.id === activeTab)?.name.toLowerCase()}.
+              </p>
+            </div>
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/10 disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-sky-500/20 disabled:opacity-50 transition-all hover:scale-[1.02]"
             >
               <FileDown className="h-4 w-4" />
-              <span>Compile Revision Sheet</span>
+              <span>Compile {tabs.find(t => t.id === activeTab)?.name}</span>
             </button>
           </div>
         )}

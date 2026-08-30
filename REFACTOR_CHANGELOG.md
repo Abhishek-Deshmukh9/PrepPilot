@@ -58,11 +58,31 @@ PrepPilot has been overhauled to provide a clean, pedagogically sound, and stude
 - **Automatic Document Polling (`DocumentContext.jsx`)**:
   - Added a 3-second background polling loop while documents are in `processing` status so the UI transitions to `ready` automatically without page refreshes.
 - **Dynamic API Base URL (`api.js`)**:
-  - Implemented request interceptor to dynamically fetch custom backend URLs configured in the Settings page from `localStorage`.
+  - Automatically loads the configured API base URL from `localStorage` (`preppilot_api_url`) or defaults to `http://localhost:8000/api/v1`.
 
 ---
 
-## 5. 🧪 Verification & Test Results
+## 5. 🎨 Modern Classy Dark Aesthetic UI Overhaul
+
+- **Obsidian & Frosted Glass Design System (`index.css`)**:
+  - Refined multi-tier dark surfaces (`#07090e`, `#0c1017`, `#121824`) with electric cyan (`#0ea5e9`, `#38bdf8`) and violet accents.
+  - Linear/Raycast-inspired frosted glass panels (`.glass-panel`, `.glass-card`) with smooth 60fps hover elevate micro-animations.
+  - Modern typography pairing: *Plus Jakarta Sans*, *Rajdhani*, and *JetBrains Mono*.
+- **Shell & Navigation (`Navbar.jsx`, `Sidebar.jsx`, `AppShell.jsx`)**:
+  - Live active guide picker with document chunk counters.
+  - System telemetry indicators (`SYS READY`, `TUTOR ONLINE`) and glowing module indicator pips.
+- **Complete Page Overhaul (All 10+ Study Modules)**:
+  - **Dashboard**: Ambient glowing hero deck, telemetry cards, active study modules grid.
+  - **Chat**: Socratic tutor mode pills, KaTeX math blocks, collapsible citations.
+  - **Key Points**: Priority concept cards (Critical -> Low), formula containers, search and filter chips.
+  - **Flashcards**: 3D flipping card animations with spaced repetition difficulty ratings.
+  - **MCQ Practice**: Instant option grading, score review ring, conceptual explanation drawer.
+  - **Summaries & Revision Sheets**: Multi-tier tabbed readers with full Markdown + LaTeX support.
+  - **Uploads, Interview Prep, History, Settings**: Clean dark glass panels and status monitoring.
+
+---
+
+## 6. 🧪 Verification & Test Results
 
 - **Backend Unit Tests**: 3/3 passed (`pytest tests/`)
 - **FastAPI Core**: Validated and initialized cleanly (`app.main:app`)

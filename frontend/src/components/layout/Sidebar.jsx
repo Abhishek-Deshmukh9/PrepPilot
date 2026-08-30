@@ -36,50 +36,56 @@ const Sidebar = () => {
 
   return (
     <aside
-      className="w-60 h-[calc(100vh-3.5rem)] flex flex-col justify-between py-4 px-3 sticky top-14 z-20"
+      className="w-64 h-[calc(100vh-3.5rem)] flex flex-col justify-between py-5 px-3.5 sticky top-14 z-20 shrink-0 select-none"
       style={{
-        background: "rgba(5, 9, 15, 0.92)",
-        borderRight: "1px solid rgba(6, 182, 212, 0.10)",
+        background: "rgba(10, 13, 20, 0.94)",
+        borderRight: "1px solid rgba(255, 255, 255, 0.06)",
+        backdropFilter: "blur(20px)",
       }}
     >
       <div className="space-y-5">
 
-        {/* ── Active document panel ─────────────────────────── */}
+        {/* ── Active Study Guide Card ──────────────────────── */}
         <div
-          className="relative rounded-xl px-4 py-3 hud-corner"
+          className="relative rounded-2xl p-3.5 transition-all"
           style={{
-            background: "rgba(14, 116, 144, 0.12)",
-            border: "1px solid rgba(6, 182, 212, 0.20)",
+            background: "linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
+            border: "1px solid rgba(56, 189, 248, 0.18)",
+            boxShadow: "0 4px 20px -2px rgba(0, 0, 0, 0.4)",
           }}
         >
-          {/* Corner brackets are painted by .hud-corner CSS */}
           <div className="flex items-start space-x-2.5">
-            <BookOpen className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#06b6d4" }} />
+            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
+              <BookOpen className="h-4 w-4" />
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="hud-label mb-1">Active Study Guide</p>
+              <p className="font-mono text-[9px] font-bold text-sky-400/80 tracking-widest uppercase mb-0.5">
+                ACTIVE GUIDE
+              </p>
               <h4
-                className="font-display text-sm font-semibold truncate text-slate-100 tracking-wide"
+                className="font-display text-xs font-bold truncate text-slate-100 tracking-wide"
                 title={activeDocument?.filename || "No document selected"}
               >
                 {activeDocument?.filename || "No document selected"}
               </h4>
               {activeDocument && (
                 <div
-                  className="mt-2 pt-2 flex justify-between text-[10px]"
-                  style={{ borderTop: "1px solid rgba(6,182,212,0.12)", color: "rgba(6,182,212,0.55)" }}
+                  className="mt-2 pt-2 flex justify-between text-[10px] text-slate-400 font-mono"
+                  style={{ borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
                 >
-                  <span className="font-mono uppercase tracking-widest">{activeDocument.file_type}</span>
-                  <span className="font-mono">{activeDocument.chunk_count || 0} chunks</span>
+                  <span className="uppercase tracking-wider text-sky-400/90 font-bold">{activeDocument.file_type}</span>
+                  <span>{activeDocument.chunk_count || 0} chunks</span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── Navigation ───────────────────────────────────── */}
-        <nav className="space-y-0.5">
-          {/* Section label */}
-          <p className="hud-label px-3 mb-2" style={{ color: "rgba(6,182,212,0.35)" }}>Navigation</p>
+        {/* ── Navigation List ──────────────────────────────── */}
+        <nav className="space-y-1">
+          <p className="font-mono text-[9px] font-bold tracking-widest text-slate-500 uppercase px-3 mb-2">
+            STUDY MODULES
+          </p>
 
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -90,13 +96,12 @@ const Sidebar = () => {
               return (
                 <div
                   key={item.name}
-                  title="Select a document first"
-                  className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium cursor-not-allowed select-none"
-                  style={{ color: "rgba(100,116,139,0.45)" }}
+                  title="Select a document first to unlock"
+                  className="flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium cursor-not-allowed select-none opacity-40 text-slate-500"
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0" />
-                  <span className="flex-1">{item.name}</span>
-                  <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: "rgba(100,116,139,0.3)" }} />
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 truncate">{item.name}</span>
+                  <Lock className="h-3 w-3 shrink-0 text-slate-600" />
                 </div>
               );
             }
@@ -105,34 +110,33 @@ const Sidebar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 group relative"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group relative ${
+                  isActive
+                    ? "bg-sky-500/10 text-sky-400 shadow-sm shadow-sky-500/5 font-bold"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                }`}
                 style={
                   isActive
                     ? {
-                        background: "rgba(6,182,212,0.10)",
-                        color: "#22d3ee",
-                        borderLeft: "2px solid #06b6d4",
-                        paddingLeft: "10px",
+                        border: "1px solid rgba(56, 189, 248, 0.2)",
                       }
                     : {
-                        color: "rgba(148,163,184,0.8)",
-                        borderLeft: "2px solid transparent",
+                        border: "1px solid transparent",
                       }
                 }
               >
                 <Icon
-                  className="h-3.5 w-3.5 shrink-0 transition-colors duration-150"
-                  style={{ color: isActive ? "#06b6d4" : "rgba(100,116,139,0.7)" }}
+                  className={`h-4 w-4 shrink-0 transition-colors duration-200 ${
+                    isActive ? "text-sky-400" : "text-slate-500 group-hover:text-slate-300"
+                  }`}
                 />
-                <span className="tracking-wide">{item.name}</span>
+                <span className="tracking-wide truncate">{item.name}</span>
 
-                {/* Active indicator pip */}
                 {isActive && (
                   <span
-                    className="absolute right-3 h-1 w-1 rounded-full"
+                    className="absolute right-3 h-1.5 w-1.5 rounded-full bg-sky-400"
                     style={{
-                      background: "#06b6d4",
-                      boxShadow: "0 0 6px rgba(6,182,212,0.8)",
+                      boxShadow: "0 0 8px rgba(56, 189, 248, 0.8)",
                     }}
                   />
                 )}
@@ -142,33 +146,23 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      {/* ── Footer / Settings ────────────────────────────────── */}
+      {/* ── Settings Link ──────────────────────────────────── */}
       <div
         className="pt-4"
-        style={{ borderTop: "1px solid rgba(6,182,212,0.08)" }}
+        style={{ borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
       >
         <Link
           to="/settings"
-          className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150"
-          style={
+          className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
             location.pathname === "/settings"
-              ? {
-                  background: "rgba(6,182,212,0.10)",
-                  color: "#22d3ee",
-                  borderLeft: "2px solid #06b6d4",
-                  paddingLeft: "10px",
-                }
-              : { color: "rgba(148,163,184,0.6)", borderLeft: "2px solid transparent" }
-          }
+              ? "bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold"
+              : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+          }`}
         >
           <Settings
-            className="h-3.5 w-3.5 shrink-0"
-            style={{
-              color:
-                location.pathname === "/settings"
-                  ? "#06b6d4"
-                  : "rgba(100,116,139,0.6)",
-            }}
+            className={`h-4 w-4 shrink-0 ${
+              location.pathname === "/settings" ? "text-sky-400" : "text-slate-500"
+            }`}
           />
           <span className="tracking-wide">Settings</span>
         </Link>

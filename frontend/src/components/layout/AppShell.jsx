@@ -3,35 +3,34 @@ import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
 const AppShell = ({ children }) => {
-  // Cockpit theme is always dark — force the class on mount
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#05090f] text-slate-200 relative cockpit-scan">
-      {/* Ambient radial glow */}
-      <div className="mesh-bg pointer-events-none" />
+    <div className="min-h-screen flex flex-col bg-[#07090e] text-slate-100 relative selection:bg-sky-500/30 selection:text-sky-100">
+      {/* Subtle ambient mesh background */}
+      <div className="mesh-bg pointer-events-none fixed inset-0 z-0" />
 
-      {/* Fine cockpit dot-grid overlay */}
+      {/* Subtle micro dot grid overlay */}
       <div
-        className="pointer-events-none fixed inset-0 z-0"
+        className="pointer-events-none fixed inset-0 z-0 opacity-40"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(6,182,212,0.06) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
+            "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
         }}
       />
 
-      {/* Header */}
+      {/* Top Navigation */}
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden relative z-10">
-        {/* Left Navigation */}
+        {/* Sidebar */}
         <Sidebar />
 
-        {/* Main content pane */}
-        <main className="flex-1 overflow-y-auto h-[calc(100vh-3.5rem)] px-6 py-6 md:px-8 md:py-7 animate-slide-up">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto h-[calc(100vh-3.5rem)] px-5 py-6 sm:px-8 sm:py-8 animate-slide-up">
           <div className="max-w-7xl mx-auto space-y-6 pb-12">
             {children}
           </div>

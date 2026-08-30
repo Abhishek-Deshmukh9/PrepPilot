@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
@@ -7,42 +7,42 @@
   --font-display: 'Rajdhani', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* ── Cockpit HUD palette ─────────────────────────────────────── */
-  /* Primary: electric cyan — instrument readout, active states      */
-  --color-brand-50:  #ecfeff;
-  --color-brand-100: #cffafe;
-  --color-brand-200: #a5f3fc;
-  --color-brand-300: #67e8f9;
-  --color-brand-400: #22d3ee;
-  --color-brand-500: #06b6d4;  /* core cyan  */
-  --color-brand-600: #0891b2;
-  --color-brand-700: #0e7490;
-  --color-brand-800: #155e75;
-  --color-brand-900: #164e63;
-  --color-brand-950: #083344;
+  /* ── Classy Dark Ed-Tech Palette (Linear / Raycast Inspired) ── */
+  /* Primary: Vibrant Sky / Cyan */
+  --color-brand-50:  #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0ea5e9;  /* Core Brand Accent */
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+  --color-brand-800: #075985;
+  --color-brand-900: #0c4a6e;
+  --color-brand-950: #082f49;
 
-  /* Secondary: violet — structural chrome, decorative glow          */
-  --color-accent-300: #c084fc;
-  --color-accent-400: #a855f7;
+  /* Secondary: Deep Indigo / Violet */
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
   --color-accent-500: #8b5cf6;
   --color-accent-600: #7c3aed;
 
-  /* Surface tokens                                                   */
-  --color-surface-900: #05090f;
-  --color-surface-800: #0a1020;
-  --color-surface-700: #0f1929;
-  --color-surface-600: #152135;
-  --color-surface-500: #1c2d48;
+  /* Obsidian Surfaces */
+  --color-surface-950: #04060a;  /* Canvas Black */
+  --color-surface-900: #07090e;  /* Base Ground */
+  --color-surface-800: #0c1017;  /* Primary Panel */
+  --color-surface-700: #121824;  /* Card Ground */
+  --color-surface-600: #1a2234;  /* Elevated / Hover */
+  --color-surface-500: #242f48;  /* Subtle Borders */
 }
 
-/* ── Root ─────────────────────────────────────────────────────── */
+/* ── Root & Base ─────────────────────────────────────────────────── */
 :root {
   font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   color-scheme: dark;
 }
 
-/* ── Body: always dark cockpit ─────────────────────────────────── */
 body {
   margin: 0;
   padding: 0;
@@ -50,92 +50,95 @@ body {
   background-color: var(--color-surface-900);
   color: #e2e8f0;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Force dark class on html/body so Tailwind dark: prefixes activate */
-html { background-color: var(--color-surface-900); }
+html {
+  background-color: var(--color-surface-900);
+}
 
-/* ── Scrollbars ────────────────────────────────────────────────── */
-::-webkit-scrollbar       { width: 4px; height: 4px; }
+/* ── Scrollbars ──────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #1c2d48;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.4);
+}
 
-/* ── HUD panel — replaces glass-panel ─────────────────────────── */
+/* ── Frosted Glass Surfaces ─────────────────────────────────────── */
 .glass-panel {
-  background: rgba(10, 16, 32, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(6, 182, 212, 0.12);
+  background: rgba(12, 16, 23, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .dark .glass-panel {
-  background: rgba(10, 16, 32, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(6, 182, 212, 0.12);
+  background: rgba(12, 16, 23, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* ── HUD card ──────────────────────────────────────────────────── */
 .glass-card {
-  background: rgba(15, 25, 41, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(6, 182, 212, 0.10);
+  background: rgba(18, 24, 36, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.3);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dark .glass-card { background: rgba(15, 25, 41, 0.7); }
+.dark .glass-card {
+  background: rgba(18, 24, 36, 0.65);
+}
 
 .glass-card:hover {
   transform: translateY(-2px);
-  background: rgba(21, 36, 59, 0.8);
-  border-color: rgba(6, 182, 212, 0.30);
-  box-shadow: 0 8px 24px -8px rgba(6, 182, 212, 0.18),
-              0 0 0 1px rgba(6, 182, 212, 0.08);
+  background: rgba(26, 34, 52, 0.8);
+  border-color: rgba(56, 189, 248, 0.28);
+  box-shadow: 0 12px 32px -8px rgba(14, 165, 233, 0.16), 0 0 0 1px rgba(56, 189, 248, 0.12);
 }
 
 .dark .glass-card:hover {
-  background: rgba(21, 36, 59, 0.8);
-  border-color: rgba(6, 182, 212, 0.30);
-  box-shadow: 0 8px 24px -8px rgba(6, 182, 212, 0.20),
-              0 0 0 1px rgba(6, 182, 212, 0.10);
+  background: rgba(26, 34, 52, 0.8);
+  border-color: rgba(56, 189, 248, 0.28);
+  box-shadow: 0 12px 32px -8px rgba(14, 165, 233, 0.16), 0 0 0 1px rgba(56, 189, 248, 0.12);
 }
 
-/* ── Cockpit grid background ───────────────────────────────────── */
+/* ── Subtle Background Canvas ────────────────────────────────────── */
 .canvas-grid {
   background-size: 32px 32px;
   background-image:
-    linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
 
-.dark .canvas-grid {
-  background-image:
-    linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
-}
-
-/* ── Subtle scan-line texture (very light, cockpit feel) ─────── */
-.cockpit-scan::after {
-  content: "";
-  pointer-events: none;
-  position: fixed;
+/* ── Ambient Radial Mesh ─────────────────────────────────────────── */
+.mesh-bg {
+  position: absolute;
   inset: 0;
-  z-index: 9999;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.02) 0px,
-    rgba(0, 0, 0, 0.02) 1px,
-    transparent 1px,
-    transparent 3px
-  );
+  z-index: -1;
+  background-image:
+    radial-gradient(at 0% 0%,   rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.07) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 55%);
 }
 
-/* ── HUD bracket corners — decorative clip ───────────────────── */
+.dark .mesh-bg {
+  background-image:
+    radial-gradient(at 0% 0%,   rgba(14, 165, 233, 0.09) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.06) 0px, transparent 55%);
+}
+
+/* ── HUD Telemetry Elements ──────────────────────────────────────── */
 .hud-corner {
   position: relative;
 }
@@ -143,9 +146,9 @@ html { background-color: var(--color-surface-900); }
 .hud-corner::after {
   content: "";
   position: absolute;
-  width: 10px;
-  height: 10px;
-  border-color: rgba(6, 182, 212, 0.4);
+  width: 8px;
+  height: 8px;
+  border-color: rgba(56, 189, 248, 0.35);
   border-style: solid;
 }
 .hud-corner::before {
@@ -157,66 +160,41 @@ html { background-color: var(--color-surface-900); }
   border-width: 0 1.5px 1.5px 0;
 }
 
-/* ── HUD label — small-caps monospace readout label ──────────── */
 .hud-label {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(6, 182, 212, 0.6);
-  font-weight: 500;
+  color: rgba(56, 189, 248, 0.7);
+  font-weight: 600;
 }
 
-/* ── Cyan glow for active/selected states ─────────────────────── */
-.hud-glow {
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.18),
-              0 0 1px  rgba(6, 182, 212, 0.6) inset;
-}
-
-/* ── Mesh background ───────────────────────────────────────────── */
-.mesh-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image:
-    radial-gradient(at 0% 0%,   rgba(6, 182, 212, 0.07) 0px, transparent 55%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.04) 0px, transparent 60%);
-}
-
-.dark .mesh-bg {
-  background-image:
-    radial-gradient(at 0% 0%,   rgba(6, 182, 212, 0.09) 0px, transparent 55%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.07) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 60%);
-}
-
-/* ── Animations ────────────────────────────────────────────────── */
+/* ── Animations ──────────────────────────────────────────────────── */
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.7; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.75; transform: scale(0.98); }
 }
 .animate-pulse-subtle {
   animation: pulse-subtle 2.4s infinite ease-in-out;
 }
 
 @keyframes slide-up {
-  from { transform: translateY(10px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
 }
 .animate-slide-up {
-  animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes hud-blink {
-  0%, 90%, 100% { opacity: 1; }
-  95%            { opacity: 0; }
+  0%, 85%, 100% { opacity: 1; }
+  92%           { opacity: 0.2; }
 }
 .animate-hud-blink {
-  animation: hud-blink 3.5s infinite;
+  animation: hud-blink 4s infinite;
 }
 
-/* ── KaTeX ─────────────────────────────────────────────────────── */
+/* ── KaTeX Styling ───────────────────────────────────────────────── */
 .katex {
   font-size: 1.05em;
   text-rendering: geometricPrecision;
@@ -228,14 +206,13 @@ html { background-color: var(--color-surface-900); }
   padding: 0.5em 0;
 }
 
-/* ── Focus ring in cyan ─────────────────────────────────────────── */
+/* ── Focus and Selection ─────────────────────────────────────────── */
 *:focus-visible {
-  outline: 1.5px solid rgba(6, 182, 212, 0.7);
+  outline: 1.5px solid rgba(56, 189, 248, 0.6);
   outline-offset: 2px;
 }
 
-/* ── Text selection ─────────────────────────────────────────────── */
 ::selection {
-  background: rgba(6, 182, 212, 0.25);
-  color: #e2e8f0;
+  background: rgba(14, 165, 233, 0.3);
+  color: #f8fafc;
 }

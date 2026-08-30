@@ -32,39 +32,39 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-6 animate-slide-up">
+    <div className="max-w-xl mx-auto space-y-6 animate-slide-up pb-8">
       <div>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Settings</h1>
-        <p className="text-slate-500 dark:text-slate-400">Manage connections, configuration preferences, and system parameters.</p>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-100">System Settings</h1>
+        <p className="text-xs text-slate-400 mt-1">Manage API connection endpoints, model runtime parameters, and local data.</p>
       </div>
 
-      <div className="glass-panel border border-slate-200/50 dark:border-slate-800/50 rounded-3xl p-6 md:p-8 space-y-6 bg-white/50">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
         
         {/* API connection form */}
         <form onSubmit={handleSave} className="space-y-4">
-          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center">
-            <Database className="h-4 w-4 mr-1.5 text-brand-500" />
-            <span>Connection Gateway</span>
+          <h3 className="font-mono text-[10px] font-bold text-sky-400 uppercase tracking-widest flex items-center">
+            <Database className="h-3.5 w-3.5 mr-1.5" />
+            <span>CONNECTION GATEWAY</span>
           </h3>
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-400">Backend API URL</label>
+            <label className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-wider">Backend API Endpoint</label>
             <input
               type="text"
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
-              className="w-full bg-slate-100/50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-900/80 border border-slate-200/50 dark:border-slate-800/50 px-4 py-3 rounded-2xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-950 transition-all"
+              className="w-full bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl text-xs text-slate-100 focus:outline-none focus:border-sky-500/50 focus:bg-[#0c1017] transition-all font-mono"
             />
           </div>
 
           <div className="flex items-center space-x-3">
             <button
               type="submit"
-              className="bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/10 transition-all hover:scale-[1.02]"
+              className="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-sky-500/20 transition-all hover:scale-[1.02]"
             >
               Save Configuration
             </button>
             {saveSuccess && (
-              <span className="text-xs text-emerald-500 font-semibold flex items-center">
+              <span className="text-xs text-emerald-400 font-semibold flex items-center">
                 <CheckCircle className="h-4 w-4 mr-1" /> Settings saved!
               </span>
             )}
@@ -72,41 +72,41 @@ const SettingsPage = () => {
         </form>
 
         {/* Model parameters read-only */}
-        <div className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4">
-          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center">
-            <Cpu className="h-4 w-4 mr-1.5 text-indigo-500" />
-            <span>AI Architecture Parameters</span>
+        <div className="pt-6 border-t border-white/[0.06] space-y-4">
+          <h3 className="font-mono text-[10px] font-bold text-indigo-400 uppercase tracking-widest flex items-center">
+            <Cpu className="h-3.5 w-3.5 mr-1.5" />
+            <span>AI RUNTIME ARCHITECTURE</span>
           </h3>
-          <div className="grid grid-cols-2 gap-4 text-xs font-medium">
-            <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 rounded-2xl">
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">LLM Engine</p>
-              <p className="text-slate-700 dark:text-slate-300 mt-1 font-semibold">Gemini 2.5 Flash</p>
+          <div className="grid grid-cols-2 gap-3 text-xs font-medium">
+            <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+              <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest font-bold">LLM Engine</p>
+              <p className="text-slate-200 mt-1 font-semibold">Gemini 3.5 Flash</p>
             </div>
-            <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 rounded-2xl">
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Embeddings model</p>
-              <p className="text-slate-700 dark:text-slate-300 mt-1 font-semibold">all-MiniLM-L6-v2</p>
+            <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+              <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest font-bold">Cloud Embeddings</p>
+              <p className="text-slate-200 mt-1 font-semibold">gemini-embedding-001</p>
             </div>
-            <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 rounded-2xl">
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Chunk size</p>
-              <p className="text-slate-700 dark:text-slate-300 mt-1 font-semibold">500 tokens</p>
+            <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+              <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest font-bold">Vector Database</p>
+              <p className="text-slate-200 mt-1 font-semibold">ChromaDB (Local)</p>
             </div>
-            <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 rounded-2xl">
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Chunk overlap</p>
-              <p className="text-slate-700 dark:text-slate-300 mt-1 font-semibold">100 tokens</p>
+            <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+              <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest font-bold">Vector Dimension</p>
+              <p className="text-slate-200 mt-1 font-semibold">3072 dims</p>
             </div>
           </div>
         </div>
 
         {/* Clear memory settings */}
-        <div className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
-          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center text-rose-500">
-            <Trash2 className="h-4 w-4 mr-1.5" />
-            <span>Danger Zone</span>
+        <div className="pt-6 border-t border-white/[0.06] space-y-3">
+          <h3 className="font-mono text-[10px] font-bold uppercase tracking-widest flex items-center text-rose-400">
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            <span>LOCAL PREFERENCES CACHE</span>
           </h3>
-          <p className="text-[11px] text-slate-400">Reset local browser caches and active study indicators. This does not delete backend SQLite documents.</p>
+          <p className="text-xs text-slate-400">Reset local browser session state and stored active guide selections. This will not delete backend vector embeddings or documents.</p>
           <button
             onClick={handleResetApp}
-            className="flex items-center space-x-1 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 rounded-xl text-xs font-semibold border border-rose-200/30 transition-all"
+            className="flex items-center space-x-1.5 px-4 py-2 hover:bg-rose-500/10 text-rose-400 rounded-xl text-xs font-semibold border border-rose-500/20 transition-all"
           >
             <span>Reset Local Preferences</span>
           </button>

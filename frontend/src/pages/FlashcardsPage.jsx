@@ -7,7 +7,9 @@ import {
   ArrowLeft, 
   ArrowRight, 
   RotateCcw,
-  CheckCircle2
+  CheckCircle2,
+  Layers,
+  RotateCw
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
@@ -19,17 +21,16 @@ const FlashcardsPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   
   // Card settings
-  const [deckName, setDeckName] = useState("Key Terms");
-  const [cardCount, setCardCount] = useState(20);
+  const [deckName, setDeckName] = useState("Key Terminology Deck");
+  const [cardCount, setCardCount] = useState(15);
 
   // Deck states
   const [deckActive, setDeckActive] = useState(false);
   const [cards, setCards] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [ratings, setRatings] = useState({}); // { cardId: 'easy' | 'medium' | 'hard' }
+  const [ratings, setRatings] = useState({});
 
-  // Reset states on active document swap
   useEffect(() => {
     setDeckActive(false);
     setCards([]);
@@ -68,7 +69,6 @@ const FlashcardsPage = () => {
   const handlePrev = () => {
     if (currentIdx > 0) {
       setFlipped(false);
-      // Brief delay to allow card to unflip before shifting content
       setTimeout(() => {
         setCurrentIdx((prev) => prev - 1);
       }, 150);
@@ -90,7 +90,6 @@ const FlashcardsPage = () => {
       ...prev,
       [activeCard.id]: difficulty
     }));
-    // Auto advance if there is a next card
     if (currentIdx < cards.length - 1) {
       handleNext();
     }
@@ -103,13 +102,13 @@ const FlashcardsPage = () => {
 
   if (!activeDocument) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto space-y-4">
-        <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-full text-amber-500 border border-amber-100/50 dark:border-amber-900/30">
-          <Copy className="h-6 w-6" />
+      <div className="h-[60vh] flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto space-y-4 animate-slide-up">
+        <div className="bg-sky-500/10 p-4 rounded-2xl text-sky-400 border border-sky-500/20 shadow-inner">
+          <Copy className="h-8 w-8 animate-pulse-subtle" />
         </div>
-        <h3 className="font-display text-md font-bold">Select Document for Flashcards</h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-          Open the sidebar and pick a study guide. Once active, this tool compiles terminology cards for active revision.
+        <h3 className="font-display text-base font-bold text-slate-100">Select Study Document</h3>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Choose a guide from the top navigation. PrepPilot creates interactive 3D flashcards with spaced repetition memory rating.
         </p>
       </div>
     );
@@ -122,16 +121,18 @@ const FlashcardsPage = () => {
     
     return (
       <div className="max-w-md mx-auto space-y-6 animate-slide-up">
-        {/* Card Counter Header */}
+        {/* Progress & Deck Info */}
         <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
-          <span>Deck: <strong className="text-slate-700 dark:text-slate-300">{deckName}</strong></span>
-          <span>Card {currentIdx + 1} of {cards.length}</span>
+          <span className="font-mono text-[11px]">DECK: <strong className="text-sky-400 font-sans">{deckName}</strong></span>
+          <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+            CARD {currentIdx + 1} OF {cards.length}
+          </span>
         </div>
 
         {/* 3D Flipping Card Container */}
         <div 
           onClick={handleFlip}
-          className="h-80 w-full relative cursor-pointer group"
+          className="h-84 w-full relative cursor-pointer group select-none"
           style={{ perspective: "1000px" }}
         >
           <div 
@@ -143,42 +144,46 @@ const FlashcardsPage = () => {
           >
             {/* Front Side */}
             <div 
-              className="absolute inset-0 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-8 flex flex-col justify-between shadow-md"
+              className="absolute inset-0 bg-[#0c1017] border border-white/[0.08] rounded-3xl p-8 flex flex-col justify-between shadow-2xl transition-all group-hover:border-sky-500/30"
               style={{ backfaceVisibility: "hidden" }}
             >
-              <div className="text-[10px] font-extrabold text-brand-500 uppercase tracking-widest font-display flex items-center justify-between">
-                <span>Concept / Term</span>
-                <span className="text-slate-300 dark:text-slate-700">Click to flip</span>
+              <div className="text-[10px] font-extrabold text-sky-400 uppercase tracking-widest font-mono flex items-center justify-between">
+                <span>CONCEPT / QUESTION</span>
+                <span className="text-slate-500 font-sans font-normal flex items-center gap-1">
+                  <RotateCw className="w-3 h-3" /> Click to flip
+                </span>
               </div>
-              <div className="flex-1 flex items-center justify-center text-center">
-                <div className="font-display text-lg md:text-xl font-bold leading-relaxed text-slate-800 dark:text-slate-100 select-text">
+              <div className="flex-1 flex items-center justify-center text-center px-2">
+                <div className="font-display text-lg md:text-xl font-bold leading-relaxed text-slate-100 select-text">
                   <MarkdownRenderer content={activeCard.front} compact />
                 </div>
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium text-center">
-                PrepPilot Study Deck
+              <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest text-center">
+                PREPPILOT STUDY DECK
               </div>
             </div>
 
             {/* Back Side */}
             <div 
-              className="absolute inset-0 bg-white dark:bg-slate-950 border border-brand-500/30 rounded-3xl p-8 flex flex-col justify-between shadow-lg"
+              className="absolute inset-0 bg-[#0c1017] border border-sky-500/30 rounded-3xl p-8 flex flex-col justify-between shadow-2xl"
               style={{ 
                 backfaceVisibility: "hidden",
                 transform: "rotateY(180deg)"
               }}
             >
-              <div className="text-[10px] font-extrabold text-brand-500 uppercase tracking-widest font-display flex justify-between">
-                <span>Answer / Definition</span>
-                <span className="text-slate-300 dark:text-slate-700">Click to flip</span>
+              <div className="text-[10px] font-extrabold text-indigo-400 uppercase tracking-widest font-mono flex justify-between">
+                <span>DEFINITION / EXPLANATION</span>
+                <span className="text-slate-500 font-sans font-normal flex items-center gap-1">
+                  <RotateCw className="w-3 h-3" /> Click to flip
+                </span>
               </div>
-              <div className="flex-1 flex items-center justify-center text-center overflow-y-auto my-4 pr-1">
-                <div className="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed select-text">
+              <div className="flex-1 flex items-center justify-center text-center overflow-y-auto my-3 pr-1">
+                <div className="text-xs md:text-sm text-slate-200 leading-relaxed select-text">
                   <MarkdownRenderer content={activeCard.back} compact />
                 </div>
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium text-center">
-                PrepPilot Study Deck
+              <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest text-center">
+                PREPPILOT STUDY DECK
               </div>
             </div>
           </div>
@@ -186,23 +191,27 @@ const FlashcardsPage = () => {
 
         {/* Rating Row (renders when flipped) */}
         {flipped && (
-          <div className="glass-panel p-4 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-sm flex flex-col items-center justify-center space-y-2 bg-white/70 animate-slide-up">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Rate memory retention:</span>
-            <div className="flex space-x-2">
-              {["easy", "medium", "hard"].map((diff) => (
+          <div className="glass-panel p-4 rounded-2xl border border-white/[0.08] shadow-lg flex flex-col items-center justify-center space-y-2.5 animate-slide-up">
+            <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-slate-400">
+              RATE RECALL DIFFICULTY:
+            </span>
+            <div className="flex space-x-2.5">
+              {[
+                { id: "easy", label: "Easy (+1)", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20" },
+                { id: "medium", label: "Medium (0)", color: "border-sky-500/30 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20" },
+                { id: "hard", label: "Hard (Retry)", color: "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20" }
+              ].map((item) => (
                 <button
-                  key={diff}
+                  key={item.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRating(diff);
+                    handleRating(item.id);
                   }}
-                  className={`px-4 py-1.5 rounded-xl border text-[10px] font-bold capitalize transition-all ${
-                    isRated === diff
-                      ? "border-brand-500 bg-brand-50/20 text-brand-600 dark:text-brand-400"
-                      : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900"
+                  className={`px-4 py-2 rounded-xl border text-xs font-mono font-bold transition-all ${item.color} ${
+                    isRated === item.id ? "ring-2 ring-sky-400" : ""
                   }`}
                 >
-                  {diff}
+                  {item.label}
                 </button>
               ))}
             </div>
@@ -213,35 +222,35 @@ const FlashcardsPage = () => {
         <div className="flex justify-between items-center">
           <button
             onClick={handleFinishDeck}
-            className="flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            className="flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
-            <span>Reshuffle Deck</span>
+            <span>Reset Deck</span>
           </button>
 
           <div className="flex space-x-2.5">
             <button
               onClick={handlePrev}
               disabled={currentIdx === 0}
-              className="p-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+              className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-all"
             >
-              <ArrowLeft className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+              <ArrowLeft className="h-4 w-4" />
             </button>
             
             {currentIdx === cards.length - 1 ? (
               <button
                 onClick={handleFinishDeck}
-                className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-lg shadow-emerald-500/10 transition-all hover:scale-[1.02]"
+                className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-xs px-5 py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Finish Deck</span>
+                <span>Finish Review</span>
               </button>
             ) : (
               <button
                 onClick={handleNext}
-                className="p-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 transition-colors"
+                className="p-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-slate-300 transition-all"
               >
-                <ArrowRight className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <ArrowRight className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -252,39 +261,39 @@ const FlashcardsPage = () => {
 
   // Pre-Deck Configuration Screen
   return (
-    <div className="max-w-md mx-auto space-y-6">
+    <div className="max-w-md mx-auto space-y-6 animate-slide-up">
       <div>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Study Flashcards</h1>
-        <p className="text-slate-500 dark:text-slate-400">Generate terminology cards for active spaced repetition memory practice.</p>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-100">Study Flashcards</h1>
+        <p className="text-xs text-slate-400 mt-1">Generate interactive memory retention decks from your active study guide.</p>
       </div>
 
-      <div className="glass-panel rounded-3xl p-6 border border-slate-200/50 dark:border-slate-800/50 shadow-sm space-y-5 bg-white/50">
+      <div className="glass-panel rounded-3xl p-6 sm:p-7 space-y-5">
         {/* Deck name input */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Deck Name</label>
+        <div className="space-y-2">
+          <label className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deck Name</label>
           <input
             type="text"
             value={deckName}
             onChange={(e) => setDeckName(e.target.value)}
-            className="w-full bg-slate-100/50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-900/80 border border-slate-200/50 dark:border-slate-800/50 px-4 py-3 rounded-2xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-950 transition-all"
+            className="w-full bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl text-xs text-slate-100 focus:outline-none focus:border-sky-500/50 focus:bg-[#0c1017] transition-all"
           />
         </div>
 
         {/* Card Quantity input */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Card Quantity</label>
+        <div className="space-y-2">
+          <label className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">Card Quantity</label>
           <input
             type="number"
             value={cardCount}
             onChange={(e) => setCardCount(e.target.value)}
-            className="w-full bg-slate-100/50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-900/80 border border-slate-200/50 dark:border-slate-800/50 px-4 py-3 rounded-2xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-950 transition-all"
+            className="w-full bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl text-xs text-slate-100 focus:outline-none focus:border-sky-500/50 focus:bg-[#0c1017] transition-all font-mono"
             min="5"
             max="50"
           />
         </div>
 
         {errorMsg && (
-          <div className="flex items-center space-x-1.5 text-xs text-rose-500 font-semibold bg-rose-500/10 px-3 py-2.5 rounded-xl border border-rose-500/20">
+          <div className="flex items-center space-x-2 text-xs text-rose-400 font-semibold bg-rose-500/10 px-4 py-3 rounded-2xl border border-rose-500/20">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -293,12 +302,12 @@ const FlashcardsPage = () => {
         <button
           onClick={handleStartDeck}
           disabled={loading}
-          className="w-full flex items-center justify-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs py-3.5 rounded-xl shadow-lg shadow-brand-500/10 disabled:opacity-50 transition-all hover:scale-[1.02]"
+          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-xs py-3.5 rounded-2xl shadow-lg shadow-sky-500/20 disabled:opacity-50 transition-all hover:scale-[1.02]"
         >
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Generating flashcards deck...</span>
+              <span>Generating flashcard cards...</span>
             </>
           ) : (
             <>

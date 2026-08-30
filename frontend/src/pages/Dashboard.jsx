@@ -10,7 +10,9 @@ import {
   ChevronRight,
   BookOpen,
   Copy,
-  Zap
+  Zap,
+  Lock,
+  ArrowUpRight
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 
@@ -18,127 +20,193 @@ const Dashboard = () => {
   const { documents, activeDocument, selectDocument } = useDocuments();
 
   const stats = [
-    { name: "Total Knowledge Bases", value: documents.length, icon: FileText },
-    { name: "Active Document", value: activeDocument ? "Active" : "None Selected", icon: BookOpen },
-    { name: "Ready for Study", value: documents.filter(d => d.status === "ready").length, icon: Sparkles }
+    { name: "Total Knowledge Bases", value: documents.length, icon: FileText, color: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" },
+    { name: "Active Document", value: activeDocument ? activeDocument.filename : "None Selected", icon: BookOpen, color: "text-indigo-400", bg: "bg-indigo-500/10 border-indigo-500/20" },
+    { name: "Ready for Study", value: documents.filter(d => d.status === "ready").length, icon: Sparkles, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" }
   ];
 
   const quickActions = [
     { 
       name: "AI Learning Companion", 
-      desc: "Ask questions about your PDF — choose Socratic, ELI5, Exam Cram or Worked Example mode.", 
+      desc: "Ask any academic question with Socratic, ELI5, Exam Cram, and Worked Example modes.", 
       path: "/chat", 
       icon: MessageSquare, 
-      color: "from-brand-600 to-indigo-600",
+      color: "from-sky-500 to-indigo-600",
+      accent: "text-sky-400",
       badge: "Core Feature",
       requiresDoc: false 
     },
     { 
       name: "Key Points Extractor", 
-      desc: "Extract the most important concepts, formulas, and exam-critical ideas — ranked by priority.", 
+      desc: "Extract core concepts, formulas, and high-yield notes categorized by priority ranking.", 
       path: "/keypoints", 
       icon: Zap, 
-      color: "from-amber-500 to-orange-500",
+      color: "from-amber-500 to-orange-600",
+      accent: "text-amber-400",
       badge: "New",
       requiresDoc: true 
     },
     { 
       name: "Document Summarizer", 
-      desc: "Generate executive, detailed, and study guide summaries.", 
+      desc: "Generate executive overviews, detailed structures, and rapid revision summaries.", 
       path: "/summary", 
       icon: FileText, 
-      color: "from-purple-500 to-pink-500",
+      color: "from-purple-500 to-pink-600",
+      accent: "text-purple-400",
       requiresDoc: true 
     },
     { 
       name: "Practice Quizzes", 
-      desc: "Create multiple-choice practice exams with immediate scoring.", 
+      desc: "Test active recall with custom multiple-choice exams and instant conceptual feedback.", 
       path: "/mcqs", 
       icon: HelpCircle, 
-      color: "from-emerald-500 to-teal-500",
+      color: "from-emerald-500 to-teal-600",
+      accent: "text-emerald-400",
+      requiresDoc: true 
+    },
+    { 
+      name: "Flashcard Decks", 
+      desc: "Study terminology cards with interactive 3D flips and spaced repetition memory ratings.", 
+      path: "/flashcards", 
+      icon: Copy, 
+      color: "from-blue-500 to-cyan-600",
+      accent: "text-blue-400",
+      requiresDoc: true 
+    },
+    { 
+      name: "Revision Cheat Sheets", 
+      desc: "Generate last-minute study notes, formula cheat sheets, and high-yield exam Q&As.", 
+      path: "/revision", 
+      icon: FileText, 
+      color: "from-violet-500 to-indigo-600",
+      accent: "text-violet-400",
       requiresDoc: true 
     },
     { 
       name: "Mock Interview Prep", 
-      desc: "Scan resume against JDs to compile technical mock panels.", 
+      desc: "Scan your resume against job descriptions to generate technical & behavioral mock panels.", 
       path: "/interview", 
       icon: Briefcase, 
-      color: "from-rose-500 to-pink-500",
+      color: "from-rose-500 to-pink-600",
+      accent: "text-rose-400",
       requiresDoc: false 
     }
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Top Welcome Panel */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 p-8 text-white shadow-xl shadow-brand-500/10">
+    <div className="space-y-8 animate-slide-up">
+      {/* ── Welcome Flight Deck Banner ─────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-10 text-white shadow-2xl transition-all"
+        style={{
+          background: "linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(99, 102, 241, 0.15) 50%, rgba(139, 92, 246, 0.1) 100%)",
+          border: "1px solid rgba(56, 189, 248, 0.25)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+        }}
+      >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight">Welcome to PrepPilot AI</h1>
-            <p className="text-brand-100 text-sm max-w-xl">
-              Accelerate your preparation. Upload study materials to query notes, generate flashcards, practice quizzes, and simulate mock interviews.
+          <div className="space-y-3">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 font-mono text-[10px] font-bold tracking-widest uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse-subtle" />
+              <span>ACADEMIC COPILOT ONLINE</span>
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100">
+              Welcome to PrepPilot
+            </h1>
+            <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
+              Accelerate your learning workflow. Upload lecture notes, academic PDFs, or study guides to extract key concepts, practice quizzes, and master any subject with an adaptive AI tutor.
             </p>
           </div>
           <Link
             to="/upload"
-            className="self-start md:self-auto flex items-center space-x-2 bg-white text-brand-600 hover:bg-brand-50 px-5 py-3 rounded-2xl text-xs font-bold shadow-lg shadow-black/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="self-start md:self-auto flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-lg shadow-sky-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
           >
-            <UploadCloud className="h-4.5 w-4.5" />
-            <span>Upload Knowledge Base</span>
+            <UploadCloud className="h-4 w-4" />
+            <span>Upload Study Guide</span>
+            <ArrowUpRight className="h-3.5 w-3.5 opacity-80" />
           </Link>
         </div>
-        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+        
+        {/* Subtle decorative glow orb */}
+        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* ── Telemetry Overview Stats ───────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <div key={idx} className="glass-panel p-5 rounded-2xl flex items-center space-x-4 shadow-sm border border-slate-200/50 dark:border-slate-800/50">
-              <div className="bg-brand-50 dark:bg-brand-950/40 p-3 rounded-xl text-brand-600 dark:text-brand-400">
+            <div
+              key={idx}
+              className="glass-panel p-5 rounded-2xl flex items-center space-x-4 transition-all hover:border-sky-500/25"
+            >
+              <div className={`p-3 rounded-xl border ${stat.bg} ${stat.color}`}>
                 <Icon className="h-5 w-5" />
               </div>
-              <div>
-                <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{stat.name}</p>
-                <h3 className="font-display text-xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">{stat.value}</h3>
+              <div className="min-w-0 flex-1">
+                <p className="font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.name}</p>
+                <h3 className="font-display text-lg sm:text-xl font-bold text-slate-100 mt-0.5 truncate" title={String(stat.value)}>
+                  {stat.value}
+                </h3>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Quick Action Navigation Grid */}
+      {/* ── Active Study Modules Grid ──────────────────────── */}
       <div className="space-y-4">
-        <h2 className="font-display text-xl font-extrabold tracking-tight">Active Study Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold tracking-tight text-slate-100">
+            Study Modules
+          </h2>
+          <span className="font-mono text-[10px] text-slate-400">
+            {activeDocument ? `ACTIVE: ${activeDocument.filename}` : "Select a document to unlock all modules"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
           {quickActions.map((action) => {
             const Icon = action.icon;
             const isLocked = action.requiresDoc && !activeDocument;
             
             const cardContent = (
-              <div className={`p-6 rounded-2xl glass-card flex flex-col justify-between h-52 relative group overflow-hidden ${isLocked ? "opacity-55 cursor-not-allowed" : ""}`}>
+              <div
+                className={`p-6 rounded-2xl glass-card flex flex-col justify-between h-56 relative group overflow-hidden ${
+                  isLocked ? "opacity-45 cursor-not-allowed" : ""
+                }`}
+              >
                 <div className="space-y-3">
-                  <div className={`h-10 w-10 rounded-xl bg-gradient-to-tr ${action.color} text-white flex items-center justify-center shadow-md`}>
-                    <Icon className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-tr ${action.color} text-white flex items-center justify-center shadow-md shadow-black/40`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    {action.badge && (
+                      <span className="font-mono text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                        {action.badge}
+                      </span>
+                    )}
                   </div>
-                  <h3 className="font-display text-md font-bold group-hover:text-brand-500 transition-colors">{action.name}</h3>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">{action.desc}</p>
+                  <h3 className="font-display text-base font-bold text-slate-100 group-hover:text-sky-400 transition-colors">
+                    {action.name}
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                    {action.desc}
+                  </p>
                 </div>
                 
-                <div className="flex items-center text-xs font-semibold text-brand-500 mt-2">
-                  <span>{isLocked ? "Unlock with Document" : "Open Module"}</span>
-                  {!isLocked && <ChevronRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-1 transition-transform" />}
+                <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] text-xs font-semibold text-sky-400">
+                  <span>{isLocked ? "Requires Document" : "Launch Module"}</span>
+                  {!isLocked ? (
+                    <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  ) : (
+                    <Lock className="h-3.5 w-3.5 text-slate-500" />
+                  )}
                 </div>
-
-                {isLocked && (
-                  <span className="absolute right-4 top-4 text-[9px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">Locked</span>
-                )}
               </div>
             );
 
             return isLocked ? (
-              <div key={action.name} title="Select a document first to unlock this action.">{cardContent}</div>
+              <div key={action.name} title="Select a study document first to unlock this tool.">{cardContent}</div>
             ) : (
               <Link key={action.name} to={action.path}>{cardContent}</Link>
             );
@@ -146,47 +214,68 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Document Picker Table */}
-      <div className="glass-panel rounded-3xl p-6 border border-slate-200/50 dark:border-slate-800/50 shadow-sm space-y-4">
+      {/* ── Uploaded Knowledge Bases Table ─────────────────── */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-7 space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="font-display text-lg font-bold">Knowledge Bases</h2>
-          <Link to="/upload" className="text-xs text-brand-500 hover:underline font-semibold">Manage Documents</Link>
+          <div>
+            <h2 className="font-display text-lg font-bold text-slate-100">Study Knowledge Bases</h2>
+            <p className="text-xs text-slate-400">Manage and switch between uploaded academic documents</p>
+          </div>
+          <Link
+            to="/upload"
+            className="inline-flex items-center space-x-1.5 font-mono text-[11px] font-bold text-sky-400 hover:text-sky-300 transition-colors"
+          >
+            <span>MANAGE ALL</span>
+            <ChevronRight className="h-3 w-3" />
+          </Link>
         </div>
 
         {documents.length === 0 ? (
-          <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-xs">
-            No documents uploaded yet. Go to <Link to="/upload" className="text-brand-500 hover:underline">Upload Page</Link> to import.
+          <div className="py-12 text-center text-slate-400 text-xs space-y-3">
+            <p>No knowledge bases uploaded yet.</p>
+            <Link
+              to="/upload"
+              className="inline-flex items-center space-x-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-4 py-2 rounded-xl font-semibold transition-all"
+            >
+              <UploadCloud className="h-4 w-4" />
+              <span>Upload your first document</span>
+            </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase tracking-wider text-[9px] font-bold">
+                <tr className="border-b border-white/[0.06] text-slate-400 uppercase tracking-widest font-mono text-[9px]">
                   <th className="py-3 px-4">Document</th>
                   <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Chunks</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-white/[0.04]">
                 {documents.map((doc) => {
                   const isActive = activeDocument?.id === doc.id;
                   return (
                     <tr 
                       key={doc.id} 
-                      className={`hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors ${
-                        isActive ? "bg-brand-50/20 dark:bg-brand-950/10" : ""
+                      className={`hover:bg-white/[0.03] transition-colors ${
+                        isActive ? "bg-sky-500/[0.08]" : ""
                       }`}
                     >
-                      <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300 max-w-xs truncate">{doc.filename}</td>
-                      <td className="py-3.5 px-4 uppercase text-[10px] text-slate-400 font-bold">{doc.file_type}</td>
+                      <td className="py-3.5 px-4 font-semibold text-slate-200 max-w-xs truncate flex items-center space-x-2.5">
+                        <FileText className="h-4 w-4 text-sky-400/80 shrink-0" />
+                        <span className="truncate">{doc.filename}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[10px] text-slate-400 uppercase font-bold">{doc.file_type}</td>
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">{doc.chunk_count || 0}</td>
                       <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider ${
                           doc.status === "ready" 
-                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                             : doc.status === "processing"
-                            ? "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 animate-pulse"
-                            : "bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400"
+                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse"
+                            : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                         }`}>
                           {doc.status}
                         </span>
@@ -195,10 +284,10 @@ const Dashboard = () => {
                         {doc.status === "ready" && (
                           <button
                             onClick={() => selectDocument(isActive ? null : doc)}
-                            className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
                               isActive
-                                ? "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                                : "bg-brand-600 text-white hover:bg-brand-700 shadow-md shadow-brand-500/10"
+                                ? "bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10"
+                                : "bg-sky-500 text-white hover:bg-sky-400 shadow-md shadow-sky-500/20"
                             }`}
                           >
                             {isActive ? "Deselect" : "Study Now"}
