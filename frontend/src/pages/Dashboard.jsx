@@ -1,12 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { 
-  Sparkles, 
-  FileText, 
-  MessageSquare, 
-  HelpCircle, 
-  Briefcase, 
-  UploadCloud, 
+import {
+  Sparkles,
+  FileText,
+  MessageSquare,
+  HelpCircle,
+  Briefcase,
+  UploadCloud,
   ChevronRight,
   BookOpen,
   Copy,
@@ -24,47 +24,47 @@ const Dashboard = () => {
   ];
 
   const quickActions = [
-    { 
-      name: "AI Learning Companion", 
-      desc: "Ask questions about your PDF — choose Socratic, ELI5, Exam Cram or Worked Example mode.", 
-      path: "/chat", 
-      icon: MessageSquare, 
+    {
+      name: "AI Learning Companion",
+      desc: "Ask questions about your PDF — choose Socratic, ELI5, Exam Cram or Worked Example mode.",
+      path: "/chat",
+      icon: MessageSquare,
       color: "from-brand-600 to-indigo-600",
       badge: "Core Feature",
-      requiresDoc: false 
+      requiresDoc: false
     },
-    { 
-      name: "Key Points Extractor", 
-      desc: "Extract the most important concepts, formulas, and exam-critical ideas — ranked by priority.", 
-      path: "/keypoints", 
-      icon: Zap, 
+    {
+      name: "Key Points Extractor",
+      desc: "Extract the most important concepts, formulas, and exam-critical ideas — ranked by priority.",
+      path: "/keypoints",
+      icon: Zap,
       color: "from-amber-500 to-orange-500",
       badge: "New",
-      requiresDoc: true 
+      requiresDoc: true
     },
-    { 
-      name: "Document Summarizer", 
-      desc: "Generate executive, detailed, and study guide summaries.", 
-      path: "/summary", 
-      icon: FileText, 
+    {
+      name: "Document Summarizer",
+      desc: "Generate executive, detailed, and study guide summaries.",
+      path: "/summary",
+      icon: FileText,
       color: "from-purple-500 to-pink-500",
-      requiresDoc: true 
+      requiresDoc: true
     },
-    { 
-      name: "Practice Quizzes", 
-      desc: "Create multiple-choice practice exams with immediate scoring.", 
-      path: "/mcqs", 
-      icon: HelpCircle, 
+    {
+      name: "Practice Quizzes",
+      desc: "Create multiple-choice practice exams with immediate scoring.",
+      path: "/mcqs",
+      icon: HelpCircle,
       color: "from-emerald-500 to-teal-500",
-      requiresDoc: true 
+      requiresDoc: true
     },
-    { 
-      name: "Mock Interview Prep", 
-      desc: "Scan resume against JDs to compile technical mock panels.", 
-      path: "/interview", 
-      icon: Briefcase, 
+    {
+      name: "Mock Interview Prep",
+      desc: "Scan resume against JDs to compile technical mock panels.",
+      path: "/interview",
+      icon: Briefcase,
       color: "from-rose-500 to-pink-500",
-      requiresDoc: false 
+      requiresDoc: false
     }
   ];
 
@@ -115,7 +115,7 @@ const Dashboard = () => {
           {quickActions.map((action) => {
             const Icon = action.icon;
             const isLocked = action.requiresDoc && !activeDocument;
-            
+
             const cardContent = (
               <div className={`p-6 rounded-2xl glass-card flex flex-col justify-between h-52 relative group overflow-hidden ${isLocked ? "opacity-55 cursor-not-allowed" : ""}`}>
                 <div className="space-y-3">
@@ -125,7 +125,7 @@ const Dashboard = () => {
                   <h3 className="font-display text-md font-bold group-hover:text-brand-500 transition-colors">{action.name}</h3>
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">{action.desc}</p>
                 </div>
-                
+
                 <div className="flex items-center text-xs font-semibold text-brand-500 mt-2">
                   <span>{isLocked ? "Unlock with Document" : "Open Module"}</span>
                   {!isLocked && <ChevronRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-1 transition-transform" />}
@@ -172,17 +172,15 @@ const Dashboard = () => {
                 {documents.map((doc) => {
                   const isActive = activeDocument?.id === doc.id;
                   return (
-                    <tr 
-                      key={doc.id} 
-                      className={`hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors ${
-                        isActive ? "bg-brand-50/20 dark:bg-brand-950/10" : ""
-                      }`}
+                    <tr
+                      key={doc.id}
+                      className={`hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors ${isActive ? "bg-brand-50/20 dark:bg-brand-950/10" : ""}`}
                     >
                       <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300 max-w-xs truncate">{doc.filename}</td>
                       <td className="py-3.5 px-4 uppercase text-[10px] text-slate-400 font-bold">{doc.file_type}</td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          doc.status === "ready" 
+                          doc.status === "ready"
                             ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400"
                             : doc.status === "processing"
                             ? "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 animate-pulse"

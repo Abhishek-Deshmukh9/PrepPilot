@@ -5,6 +5,7 @@ import { DocumentProvider } from "./contexts/DocumentContext";
 import AppShell from "./components/layout/AppShell";
 
 // Page imports
+import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import UploadPage from "./pages/UploadPage";
 import ChatPage from "./pages/ChatPage";
@@ -22,21 +23,32 @@ function App() {
     <Router>
       <ThemeProvider>
         <DocumentProvider>
-          <AppShell>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/summary" element={<SummaryPage />} />
-              <Route path="/keypoints" element={<KeyPointsPage />} />
-              <Route path="/mcqs" element={<MCQPage />} />
-              <Route path="/flashcards" element={<FlashcardsPage />} />
-              <Route path="/interview" element={<InterviewPage />} />
-              <Route path="/revision" element={<RevisionPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Routes>
-          </AppShell>
+          <Routes>
+            {/* ── Standalone landing page (no AppShell) ── */}
+            <Route path="/" element={<LandingPage />} />
+
+            {/* ── App shell wraps all interior routes ──── */}
+            <Route
+              path="/*"
+              element={
+                <AppShell>
+                  <Routes>
+                    <Route path="/dashboard"  element={<Dashboard />} />
+                    <Route path="/upload"     element={<UploadPage />} />
+                    <Route path="/chat"       element={<ChatPage />} />
+                    <Route path="/summary"    element={<SummaryPage />} />
+                    <Route path="/keypoints"  element={<KeyPointsPage />} />
+                    <Route path="/mcqs"       element={<MCQPage />} />
+                    <Route path="/flashcards" element={<FlashcardsPage />} />
+                    <Route path="/interview"  element={<InterviewPage />} />
+                    <Route path="/revision"   element={<RevisionPage />} />
+                    <Route path="/history"    element={<HistoryPage />} />
+                    <Route path="/settings"   element={<SettingsPage />} />
+                  </Routes>
+                </AppShell>
+              }
+            />
+          </Routes>
         </DocumentProvider>
       </ThemeProvider>
     </Router>

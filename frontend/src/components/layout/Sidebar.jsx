@@ -22,7 +22,7 @@ const Sidebar = () => {
   const { activeDocument } = useDocuments();
 
   const navigation = [
-    { name: "Dashboard",            path: "/",          icon: LayoutDashboard },
+    { name: "Dashboard",            path: "/dashboard", icon: LayoutDashboard },
     { name: "AI Learning Companion",path: "/chat",      icon: MessageSquare   },
     { name: "Upload Documents",     path: "/upload",    icon: UploadCloud     },
     { name: "Summary Generator",    path: "/summary",   icon: FileDown,       requiresDoc: true },

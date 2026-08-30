@@ -25,7 +25,7 @@ const Navbar = () => {
       }}
     >
       {/* ── Brand ──────────────────────────────────────────── */}
-      <Link to="/" className="flex items-center space-x-3 group shrink-0">
+      <Link to="/dashboard" className="flex items-center space-x-3 group shrink-0">
         {/* HUD icon */}
         <div
           className="relative flex items-center justify-center h-8 w-8 rounded-lg"
