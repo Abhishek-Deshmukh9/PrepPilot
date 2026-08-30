@@ -174,9 +174,9 @@ export const AITutorChat = ({
                     />
                   )}
 
-                  {/* Main Message Text (with full KaTeX parsing) */}
+                  {/* Main Message Text (Markdown + KaTeX) */}
                   <div className="leading-relaxed">
-                    <MathRenderer text={msg.text} />
+                    <MathRenderer text={msg.text} compact />
                   </div>
 
                   {/* Canvas Visual Trigger Button with Why This Badge */}

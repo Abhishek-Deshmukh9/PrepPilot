@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
+import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const FlashcardsPage = () => {
   const { activeDocument } = useDocuments();
@@ -150,9 +151,9 @@ const FlashcardsPage = () => {
                 <span className="text-slate-300 dark:text-slate-700">Click to flip</span>
               </div>
               <div className="flex-1 flex items-center justify-center text-center">
-                <h3 className="font-display text-lg md:text-xl font-bold leading-relaxed text-slate-800 dark:text-slate-100 select-text">
-                  {activeCard.front}
-                </h3>
+                <div className="font-display text-lg md:text-xl font-bold leading-relaxed text-slate-800 dark:text-slate-100 select-text">
+                  <MarkdownRenderer content={activeCard.front} compact />
+                </div>
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium text-center">
                 PrepPilot Study Deck
@@ -172,9 +173,9 @@ const FlashcardsPage = () => {
                 <span className="text-slate-300 dark:text-slate-700">Click to flip</span>
               </div>
               <div className="flex-1 flex items-center justify-center text-center overflow-y-auto my-4 pr-1">
-                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed select-text font-medium">
-                  {activeCard.back}
-                </p>
+                <div className="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed select-text">
+                  <MarkdownRenderer content={activeCard.back} compact />
+                </div>
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium text-center">
                 PrepPilot Study Deck

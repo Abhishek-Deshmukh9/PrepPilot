@@ -23,10 +23,20 @@ import {
  * 4. Interactive Term Inspector for terms in formulas.
  */
 
+// Restore LaTeX commands corrupted by JSON single-backslash escaping
+// (\b → backspace U+0008, \f → form-feed U+000C, etc.)
+const restoreLatexBackslashes = (s) =>
+  s
+    .replace(/\x08([a-zA-Z@])/g, "\\$1")
+    .replace(/\x0C([a-zA-Z@])/g, "\\$1")
+    .replace(/\x0D([a-zA-Z@])/g, "\\$1")
+    .replace(/\x0B([a-zA-Z@])/g, "\\$1");
+
 // Helper to safely render KaTeX string
 export const renderKatexHtml = (latexString, isBlock = false) => {
   try {
-    return katex.renderToString(latexString.trim(), {
+    const safe = restoreLatexBackslashes(latexString.trim());
+    return katex.renderToString(safe, {
       displayMode: isBlock,
       throwOnError: false,
       errorColor: "#ef4444",

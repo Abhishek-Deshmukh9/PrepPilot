@@ -1,79 +1,126 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Sun, Moon, Sparkles, BookOpen, ChevronDown } from "lucide-react";
-import { useTheme } from "../../contexts/ThemeContext";
+import { Navigation2, BookOpen, ChevronDown } from "lucide-react";
 import { useDocuments } from "../../contexts/DocumentContext";
 
 const Navbar = () => {
-  const { darkMode, toggleTheme } = useTheme();
   const { documents, activeDocument, selectDocument } = useDocuments();
 
   const handleDocChange = (e) => {
     const docId = e.target.value;
-    if (!docId) {
-      selectDocument(null);
-      return;
-    }
+    if (!docId) { selectDocument(null); return; }
     const doc = documents.find((d) => d.id === docId);
     if (doc) selectDocument(doc);
   };
 
   return (
-    <header className="h-16 border-b border-slate-200/80 bg-white/80 dark:border-slate-800/80 dark:bg-slate-950/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-30 transition-colors duration-300">
-      {/* Brand Logo */}
-      <Link to="/" className="flex items-center space-x-2.5 group">
-        <div className="bg-gradient-to-tr from-brand-600 to-indigo-500 p-2 rounded-xl text-white shadow-md shadow-brand-500/10 group-hover:scale-105 transition-all duration-300">
-          <Sparkles className="h-4.5 w-4.5 animate-pulse-subtle" />
+    <header
+      className="h-14 flex items-center justify-between px-5 sticky top-0 z-30"
+      style={{
+        background: "rgba(5, 9, 15, 0.92)",
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        borderBottom: "1px solid rgba(6, 182, 212, 0.15)",
+        boxShadow: "0 1px 0 rgba(6,182,212,0.06), 0 4px 24px rgba(0,0,0,0.5)",
+      }}
+    >
+      {/* ── Brand ──────────────────────────────────────────── */}
+      <Link to="/" className="flex items-center space-x-3 group shrink-0">
+        {/* HUD icon */}
+        <div
+          className="relative flex items-center justify-center h-8 w-8 rounded-lg"
+          style={{
+            background: "linear-gradient(135deg, #0e7490 0%, #0891b2 50%, #06b6d4 100%)",
+            boxShadow: "0 0 14px rgba(6,182,212,0.35), 0 0 1px rgba(6,182,212,0.6) inset",
+          }}
+        >
+          <Navigation2 className="h-4 w-4 text-white" strokeWidth={2.5} />
         </div>
-        <div>
-          <span className="font-display text-lg font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-            PrepPilot <span className="text-brand-500">AI</span>
+
+        {/* Wordmark */}
+        <div className="leading-none">
+          <span
+            className="font-display text-[22px] font-bold tracking-wider uppercase"
+            style={{
+              background: "linear-gradient(90deg, #e2e8f0 30%, #06b6d4 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              letterSpacing: "0.06em",
+            }}
+          >
+            PREP
           </span>
+          <span
+            className="font-display text-[22px] font-bold tracking-wider uppercase"
+            style={{
+              color: "#06b6d4",
+              letterSpacing: "0.06em",
+              textShadow: "0 0 12px rgba(6,182,212,0.5)",
+            }}
+          >
+            PILOT
+          </span>
+          <span className="hud-label ml-2 align-middle">AI</span>
         </div>
       </Link>
 
-      {/* Center / Document Selection Dropdown */}
+      {/* ── Center: Active document selector ───────────────── */}
       <div className="flex items-center space-x-3">
-        <div className="hidden sm:flex items-center space-x-2 bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/30 px-3 py-1.5 rounded-xl text-xs text-slate-600 dark:text-slate-400">
-          <BookOpen className="h-3.5 w-3.5 text-brand-500" />
-          <span className="font-medium">Studying:</span>
+        <div
+          className="hidden sm:flex items-center space-x-2.5 px-3.5 py-1.5 rounded-lg text-xs"
+          style={{
+            background: "rgba(15, 25, 41, 0.8)",
+            border: "1px solid rgba(6, 182, 212, 0.14)",
+          }}
+        >
+          <BookOpen className="h-3.5 w-3.5 shrink-0" style={{ color: "#06b6d4" }} />
+          <span className="hud-label" style={{ color: "rgba(6,182,212,0.55)" }}>MISSION</span>
           <div className="relative flex items-center">
             <select
               value={activeDocument?.id || ""}
               onChange={handleDocChange}
-              className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 pr-5 focus:outline-none cursor-pointer appearance-none"
+              className="bg-transparent font-sans text-xs font-semibold text-slate-300 pr-5 focus:outline-none cursor-pointer appearance-none"
             >
-              <option value="" className="bg-white dark:bg-slate-950">Select document...</option>
-              {documents.filter(d => d.status === "ready").map((doc) => (
-                <option key={doc.id} value={doc.id} className="bg-white dark:bg-slate-950">
-                  {doc.filename.length > 25 ? `${doc.filename.substring(0, 25)}...` : doc.filename}
+              <option value="" className="bg-[#0a1020]">Select document…</option>
+              {documents.filter((d) => d.status === "ready").map((doc) => (
+                <option key={doc.id} value={doc.id} className="bg-[#0a1020]">
+                  {doc.filename.length > 28 ? `${doc.filename.substring(0, 28)}…` : doc.filename}
                 </option>
               ))}
             </select>
-            <ChevronDown className="h-3 w-3 absolute right-0 pointer-events-none text-slate-400" />
+            <ChevronDown className="h-3 w-3 absolute right-0 pointer-events-none text-slate-500" />
           </div>
         </div>
       </div>
 
-      {/* Right / Utility Actions */}
-      <div className="flex items-center space-x-4">
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-950 border border-transparent hover:border-slate-200/40 dark:hover:border-slate-800/40 text-slate-600 dark:text-slate-400 transition-all duration-200"
-          aria-label="Toggle Theme"
-        >
-          {darkMode ? <Sun className="h-4.5 w-4.5 text-amber-500" /> : <Moon className="h-4.5 w-4.5 text-slate-600" />}
-        </button>
+      {/* ── Right: Status cluster ───────────────────────────── */}
+      <div className="flex items-center space-x-4 shrink-0">
+        {/* System status indicator */}
+        <div className="hidden md:flex items-center space-x-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-hud-blink" />
+          <span className="hud-label" style={{ color: "rgba(52,211,153,0.7)" }}>SYS ONLINE</span>
+        </div>
 
-        {/* Premium Profile Badge */}
-        <div className="flex items-center space-x-2.5 pl-3 border-l border-slate-200 dark:border-slate-800">
-          <div className="h-8.5 w-8.5 rounded-full bg-gradient-to-tr from-brand-500 to-indigo-500 flex items-center justify-center font-display text-white text-xs font-bold shadow-md shadow-brand-500/10 border border-white/20">
+        {/* Pilot badge */}
+        <div
+          className="flex items-center space-x-2.5 pl-4"
+          style={{ borderLeft: "1px solid rgba(6,182,212,0.12)" }}
+        >
+          <div
+            className="h-8 w-8 rounded-lg flex items-center justify-center font-display text-[11px] font-bold tracking-widest text-white"
+            style={{
+              background: "linear-gradient(135deg, #0e7490 0%, #155e75 100%)",
+              border: "1px solid rgba(6,182,212,0.25)",
+              boxShadow: "0 0 10px rgba(6,182,212,0.15)",
+              letterSpacing: "0.08em",
+            }}
+          >
             PA
           </div>
-          <div className="hidden md:block text-left">
-            <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">Pilot Assistant</p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Study Mode Active</p>
+          <div className="hidden md:block text-left leading-tight">
+            <p className="text-[11px] font-semibold text-slate-200 tracking-wide">Pilot Assistant</p>
+            <p className="hud-label" style={{ color: "rgba(6,182,212,0.55)" }}>Study Mode Active</p>
           </div>
         </div>
       </div>

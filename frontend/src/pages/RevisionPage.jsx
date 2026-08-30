@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
+import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const RevisionPage = () => {
   const { activeDocument } = useDocuments();
@@ -62,45 +63,7 @@ const RevisionPage = () => {
     }
   };
 
-  // Simple Markdown-to-HTML parser to display revision guide
-  const renderMarkdown = (text) => {
-    if (!text) return "";
-    const lines = text.split("\n");
-    return lines.map((line, idx) => {
-      const trimmed = line.trim();
-      
-      if (trimmed.startsWith("###")) {
-        return <h4 key={idx} className="font-display text-sm font-bold text-slate-800 dark:text-slate-200 mt-4 mb-2">{trimmed.replace("###", "").trim()}</h4>;
-      }
-      if (trimmed.startsWith("##")) {
-        return <h3 key={idx} className="font-display text-md font-extrabold text-slate-900 dark:text-slate-100 mt-5 mb-2.5 border-b border-slate-100 dark:border-slate-800 pb-1">{trimmed.replace("##", "").trim()}</h3>;
-      }
-      if (trimmed.startsWith("#")) {
-        return <h2 key={idx} className="font-display text-lg font-black text-slate-900 dark:text-slate-50 mt-6 mb-3">{trimmed.replace("#", "").trim()}</h2>;
-      }
-      if (trimmed.startsWith("-") || trimmed.startsWith("*")) {
-        const rawContent = trimmed.substring(1).trim();
-        return (
-          <li key={idx} className="ml-4 list-disc text-xs text-slate-600 dark:text-slate-400 mb-1.5 leading-relaxed">
-            {parseBold(rawContent)}
-          </li>
-        );
-      }
-      if (trimmed === "") return <div key={idx} className="h-2" />;
-      return <p key={idx} className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2.5">{parseBold(trimmed)}</p>;
-    });
-  };
 
-  const parseBold = (content) => {
-    // Fix: correct regex for **bold** markdown pattern
-    const parts = content.split(/\*\*(.*?)\*\*/g);
-    return parts.map((part, i) => {
-      if (i % 2 === 1) {
-        return <strong key={i} className="font-bold text-slate-800 dark:text-slate-200">{part}</strong>;
-      }
-      return part;
-    });
-  };
 
   if (!activeDocument) {
     return (
@@ -181,8 +144,8 @@ const RevisionPage = () => {
         )}
 
         {currentContent ? (
-          <div className="prose dark:prose-invert max-w-none space-y-1 font-sans select-text">
-            {renderMarkdown(currentContent)}
+          <div className="max-w-none select-text">
+            <MarkdownRenderer content={currentContent} />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center py-16 space-y-4 max-w-sm mx-auto">

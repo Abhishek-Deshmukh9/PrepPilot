@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import interviewService from "../services/interviewService";
+import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const InterviewPage = () => {
   const { documents } = useDocuments();
@@ -138,7 +139,9 @@ const InterviewPage = () => {
                     <div className="flex justify-between items-start gap-4">
                       <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500">Mock Question {idx + 1}</span>
-                        <h4 className="text-xs font-bold leading-relaxed text-slate-800 dark:text-slate-100">{item.question}</h4>
+                        <div className="text-xs font-bold leading-relaxed text-slate-800 dark:text-slate-100">
+                          <MarkdownRenderer content={item.question} compact />
+                        </div>
                       </div>
                       <button
                         onClick={() => toggleGuidance(idx)}
@@ -154,9 +157,9 @@ const InterviewPage = () => {
                           <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
                           <span>Talking Points & expected answer:</span>
                         </p>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                          {item.expected_answer_hint}
-                        </p>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                          <MarkdownRenderer content={item.expected_answer_hint} compact />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -169,7 +172,9 @@ const InterviewPage = () => {
                 {activeQuestionsList.map((q, idx) => (
                   <li key={idx} className="py-4 first:pt-0 last:pb-0 flex items-start space-x-3.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                     <span className="h-5 w-5 bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 font-extrabold text-[10px] rounded-md flex items-center justify-center shrink-0 mt-0.5">{idx + 1}</span>
-                    <span className="select-text">{q}</span>
+                    <span className="select-text">
+                      <MarkdownRenderer content={q} compact />
+                    </span>
                   </li>
                 ))}
               </ul>

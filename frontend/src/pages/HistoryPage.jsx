@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import chatService from "../services/chatService";
 import { useDocuments } from "../contexts/DocumentContext";
+import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const HistoryPage = () => {
   const { documents } = useDocuments();
@@ -103,12 +104,16 @@ const HistoryPage = () => {
                 
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-brand-500">Question:</p>
-                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 select-text">{item.question}</p>
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200 select-text">
+                    <MarkdownRenderer content={item.question} compact />
+                  </div>
                 </div>
                 
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Answer:</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap select-text">{item.answer}</p>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed select-text">
+                    <MarkdownRenderer content={item.answer} />
+                  </div>
                 </div>
 
                 {item.sources && item.sources.length > 0 && (

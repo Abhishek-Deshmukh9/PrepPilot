@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
+import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const MCQPage = () => {
   const { activeDocument } = useDocuments();
@@ -176,9 +177,9 @@ const MCQPage = () => {
 
         {/* Question Panel */}
         <div className="glass-panel rounded-3xl p-6 md:p-8 border border-slate-200/50 dark:border-slate-800/50 shadow-sm space-y-6">
-          <h2 className="font-display text-md md:text-lg font-bold text-slate-800 dark:text-slate-100 leading-relaxed select-text">
-            {activeQ.question}
-          </h2>
+          <div className="font-display text-md md:text-lg font-bold text-slate-800 dark:text-slate-100 leading-relaxed select-text">
+            <MarkdownRenderer content={activeQ.question} compact />
+          </div>
 
           {/* Options Grid */}
           <div className="grid grid-cols-1 gap-3.5">
@@ -213,7 +214,9 @@ const MCQPage = () => {
                     }`}>
                       {key}
                     </span>
-                    <span className="leading-relaxed">{val}</span>
+                    <span className="leading-relaxed">
+                      <MarkdownRenderer content={val} compact />
+                    </span>
                   </div>
                   {answerChecked && isCorrectOpt && <Check className="h-4 w-4 text-emerald-500 shrink-0" />}
                   {answerChecked && isSelected && !isCorrectOpt && <X className="h-4 w-4 text-rose-500 shrink-0" />}
@@ -258,9 +261,9 @@ const MCQPage = () => {
               <Info className="h-3.5 w-3.5 mr-1.5 text-brand-500" />
               <span>Explanation Details</span>
             </h4>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-              {activeQ.explanation}
-            </p>
+            <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <MarkdownRenderer content={activeQ.explanation} />
+            </div>
           </div>
         )}
       </div>
