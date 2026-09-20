@@ -51,6 +51,13 @@ const studyService = {
     return response.data;
   },
 
+  async updateFlashcardRating(cardId, difficulty) {
+    const response = await apiClient.patch(`/flashcards/${cardId}/rating`, {
+      difficulty,
+    });
+    return response.data;
+  },
+
   /**
    * Key Points API
    */

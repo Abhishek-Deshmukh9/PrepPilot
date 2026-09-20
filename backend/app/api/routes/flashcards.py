@@ -6,7 +6,12 @@ import logging
 
 from app.database.base import get_db
 from app.api.deps import get_flashcard_generator
-from app.schemas.flashcard import FlashcardRequest, FlashcardListResponse, FlashcardResponse
+from app.schemas.flashcard import (
+    FlashcardRequest,
+    FlashcardListResponse,
+    FlashcardResponse,
+    FlashcardRatingUpdate,
+)
 from app.services.generators.flashcard_generator import FlashcardGenerator
 from app.models.flashcard import Flashcard
 
@@ -84,3 +89,33 @@ async def get_document_flashcards(
             created_at=c.created_at
         ) for c in cards
     ]
+
+@router.patch("/{card_id}/rating", response_model=FlashcardResponse)
+async def update_flashcard_rating(
+    card_id: str,
+    rating_data: FlashcardRatingUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update the difficulty rating for an existing flashcard ('easy', 'medium', 'hard').
+    """
+    card = await db.get(Flashcard, card_id)
+    if not card:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Flashcard with ID {card_id} not found."
+        )
+
+    card.difficulty = rating_data.difficulty
+    await db.commit()
+    await db.refresh(card)
+
+    return FlashcardResponse(
+        id=card.id,
+        document_id=card.document_id,
+        deck_name=card.deck_name,
+        front=card.front,
+        back=card.back,
+        difficulty=card.difficulty,
+        created_at=card.created_at
+    )

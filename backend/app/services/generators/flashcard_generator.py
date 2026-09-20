@@ -66,7 +66,7 @@ class FlashcardGenerator:
                  deck_name=deck_name,
                  front=card.get("front", ""),
                  back=card.get("back", ""),
-                 difficulty=card.get("difficulty", "medium")
+                 difficulty="unreviewed"
              )
              db.add(db_card)
              db_flashcards.append(db_card)

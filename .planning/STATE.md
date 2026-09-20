@@ -3,10 +3,10 @@
 ## Current State
 
 - **Active Milestone:** 1 — Stabilize & Fix
-- **Active Phase:** 3 — ✅ Complete
+- **Active Phase:** 4 — ✅ Complete
 - **Branch:** `abhishek-changes`
-- **Last Commit:** `bf24a84` — feat: improve document processing states and feedback
-- **Uncommitted:** Phase 3 code changes
+- **Last Commit:** `8f5c504` — feat: make settings and API configuration functional
+- **Uncommitted:** Phase 4 code changes
 
 ## Phase Status
 
@@ -15,7 +15,7 @@
 | 1 | Fix Chat Page — Harden & Complete | ✅ Done |
 | 2 | Fix Upload Polling & Document State | ✅ Done |
 | 3 | Fix Settings & API Configuration | ✅ Done |
-| 4 | Fix Flashcard Persistence | ⬜ Not Started |
+| 4 | Fix Flashcard Persistence | ✅ Done |
 | 5 | Fix Markdown & Content Rendering | ⬜ Not Started |
 | 6 | Add Regeneration Capability | ⬜ Not Started |
 
@@ -36,6 +36,11 @@
 | 11 | Phase 3: Learner persona integrated in Settings | Wired to `LearnerProfileContext` archetypes | 2026-09-20 |
 | 12 | Phase 3: Granular resets with scoped localStorage cleanup | Clear only PrepPilot-owned keys on app reset | 2026-09-20 |
 | 13 | Phase 3 execution complete | All tasks implemented, build & API verified | 2026-09-20 |
+| 14 | Phase 4: SQLite backend as source of truth for flashcard ratings | PATCH `/api/v1/flashcards/{id}/rating` with optimistic rollback | 2026-09-20 |
+| 15 | Phase 4: Mastered defined as Easy, with Hard/Medium review-needed | Initial cards default to `unreviewed` | 2026-09-20 |
+| 16 | Phase 4: Never auto-regenerate saved decks | Resume Deck view with progress stats, explicit generation action | 2026-09-20 |
+| 17 | Phase 4: All, Hard, Unreviewed study filter modes | Cockpit UI with keyboard navigation shortcuts [1/2/3/Space] | 2026-09-20 |
+| 18 | Phase 4 execution complete | All tasks implemented, build & API verified | 2026-09-20 |
 
 ## Blockers
 

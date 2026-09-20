@@ -20,7 +20,7 @@
 - Update `api.js` to read from `localStorage` with fallback to `VITE_API_URL`
 - Make Settings page actually functional
 
-### Phase 4: Fix Flashcard Persistence ⬜
+### Phase 4: Fix Flashcard Persistence ✅
 - Persist card ratings to localStorage (or backend)
 - Add "Review Hard Cards" filter mode
 - Prepare for SM-2 spaced repetition scheduling
