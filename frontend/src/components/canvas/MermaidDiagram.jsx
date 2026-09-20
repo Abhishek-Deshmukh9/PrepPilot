@@ -62,21 +62,195 @@ export const MermaidDiagram = ({
 
       try {
         const uniqueId = `mermaid_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-        // Clean markdown backticks if present
-        let cleanDefinition = chartDefinition
-          .replace(/^```mermaid\s*/i, "")
-          .replace(/^```\s*/i, "")
-          .replace(/```$/i, "")
+
+        // ── Step 1: Strip markdown fences and backticks ──
+        let raw = chartDefinition
+          .replace(/^```(?:mermaid)?\s*/im, "")
+          .replace(/```\s*$/im, "")
+          .replace(/`/g, "")
           .trim();
+
+        // ── Step 2: Sanitize line-by-line ──
+        const lines = raw.split("\n");
+        const sanitized = [];
+        let hasDeclaration = false;
+
+        // Regex patterns
+        const declarationRe = /^\s*(graph|flowchart)\s+(TD|TB|BT|RL|LR)\s*$/i;
+        const otherDiagramRe = /^\s*(sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|gitgraph|mindmap|timeline)/i;
+        const styleRe = /^\s*(style|classDef|class|linkStyle)\s+/i;
+        const subgraphRe = /^\s*(subgraph|end)\b/i;
+        const commentRe = /^\s*%%/;
+
+        /**
+         * Ensure a label is safely quoted for Mermaid.
+         * Escapes &, replaces inner " with ', wraps in double quotes.
+         */
+        const safeLabel = (label) => {
+          let s = label.trim();
+          if (!s) return '""';
+          // Strip existing surrounding quotes
+          if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+            s = s.slice(1, -1);
+          }
+          s = s.replace(/&/g, "&amp;");
+          s = s.replace(/"/g, "'");
+          return `"${s}"`;
+        };
+
+        /**
+         * Character-scanning sanitizer for a single line.
+         * Finds node labels in all Mermaid shapes: [], (), {}, (()), ([]), [()]
+         * and wraps them in double quotes so special chars don't break parsing.
+         */
+        const sanitizeLineLabels = (line) => {
+          // Map of open→close delimiters (multi-char first for priority)
+          const openers = ["(([", "([", "[(", "((", "[", "(", "{"];
+          const closerMap = {
+            "(([": "]))",
+            "([": "])",
+            "[(": ")]",
+            "((": "))",
+            "[": "]",
+            "(": ")",
+            "{": "}"
+          };
+
+          let result = "";
+          let i = 0;
+
+          while (i < line.length) {
+            // Check if we're at a node ID followed by an opener
+            // Node IDs are word chars: A, B1, node_1, etc.
+            // First, try to read a word boundary before an opener
+            let idStart = i;
+            while (i < line.length && /\w/.test(line[i])) i++;
+            let id = line.slice(idStart, i);
+
+            if (id && i < line.length) {
+              // Check for any opener at current position
+              let foundOpener = null;
+              for (const op of openers) {
+                if (line.substring(i, i + op.length) === op) {
+                  foundOpener = op;
+                  break;
+                }
+              }
+
+              if (foundOpener) {
+                const closer = closerMap[foundOpener];
+                const labelStart = i + foundOpener.length;
+
+                // Scan for the matching closer
+                let labelEnd = line.indexOf(closer, labelStart);
+                if (labelEnd === -1) {
+                  // No matching closer found — output as-is and continue
+                  result += id + foundOpener;
+                  i = labelStart;
+                  continue;
+                }
+
+                const rawLabel = line.slice(labelStart, labelEnd);
+                result += id + foundOpener + safeLabel(rawLabel) + closer;
+                i = labelEnd + closer.length;
+                continue;
+              }
+            }
+
+            // If no opener found after ID, output what we have
+            if (id) {
+              result += id;
+              continue;
+            }
+
+            // Not a word char — just copy it through
+            result += line[i];
+            i++;
+          }
+
+          return result;
+        };
+
+        /**
+         * Sanitize edge labels: -->|label| or ==>|label|
+         */
+        const sanitizeEdgeLabels = (line) => {
+          return line.replace(
+            /(-->|==>|-.->|---->)\|([^|]*)\|/g,
+            (match, arrow, label) => `${arrow}|${safeLabel(label)}|`
+          );
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+          let line = lines[i];
+
+          // Skip empty lines (but keep one for readability)
+          if (!line.trim()) {
+            if (sanitized.length > 0 && sanitized[sanitized.length - 1].trim() !== "") {
+              sanitized.push("");
+            }
+            continue;
+          }
+
+          // Skip comments
+          if (commentRe.test(line)) {
+            sanitized.push(line);
+            continue;
+          }
+
+          // Handle declaration lines (graph TD, flowchart LR, etc.)
+          if (declarationRe.test(line) || otherDiagramRe.test(line)) {
+            line = line.replace(/^(\s*(?:graph|flowchart)\s+(?:TD|TB|BT|RL|LR))\s*[\[\(].*$/i, "$1");
+            hasDeclaration = true;
+            sanitized.push(line.trim());
+            continue;
+          }
+
+          // Handle style/class/linkStyle lines — pass through as-is
+          if (styleRe.test(line)) {
+            sanitized.push(line);
+            continue;
+          }
+
+          // Handle subgraph/end — pass through
+          if (subgraphRe.test(line)) {
+            sanitized.push(line);
+            continue;
+          }
+
+          // ── Main line: node definitions and edges ──
+          line = sanitizeEdgeLabels(line);
+          line = sanitizeLineLabels(line);
+
+          sanitized.push(line);
+        }
+
+        // Ensure we have a declaration
+        if (!hasDeclaration) {
+          sanitized.unshift("graph TD");
+        }
+
+        let cleanDefinition = sanitized.join("\n").trim();
+
+        // ── Step 3: Final safety passes ──
+        // Remove triple+ blank lines
+        cleanDefinition = cleanDefinition.replace(/\n{3,}/g, "\n\n");
+
+        // Log for debugging (remove in production)
+        console.log("[MermaidDiagram] Sanitized code:\n", cleanDefinition);
 
         const { svg } = await mermaid.render(uniqueId, cleanDefinition);
         if (isMounted) {
           setSvgContent(svg);
+          setError(null);
         }
       } catch (err) {
-        console.warn("Mermaid rendering failed:", err);
+        console.warn("[MermaidDiagram] Render failed:", err);
+        console.warn("[MermaidDiagram] Raw input was:", chartDefinition);
         if (isMounted) {
-          setError("Failed to render diagram syntax cleanly.");
+          // Show the raw code so the user can still read the diagram structure
+          setError("The AI-generated diagram had syntax issues. The raw structure is shown below.");
+          setSvgContent("");
         }
       }
     };

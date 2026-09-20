@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import documentService from "../services/documentService";
+import { ToastContainer } from "../components/common/Toast";
 
 const DocumentContext = createContext();
 
@@ -12,6 +13,17 @@ export const DocumentProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const pollingIntervalRef = useRef(null);
+  const prevProcessingIdsRef = useRef(new Set());
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = useCallback((message, variant = "info", duration = 4500) => {
+    const id = `toast_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    setToasts((prev) => [...prev, { id, message, variant, duration }]);
+  }, []);
+
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   const fetchDocuments = useCallback(async () => {
     setIsLoading(true);
@@ -44,6 +56,25 @@ export const DocumentProvider = ({ children }) => {
   useEffect(() => {
     const hasProcessing = documents.some((d) => d.status === "processing");
 
+    // Detect transitions: processing → ready or processing → error
+    const prevIds = prevProcessingIdsRef.current;
+    if (prevIds.size > 0) {
+      for (const doc of documents) {
+        if (prevIds.has(doc.id)) {
+          if (doc.status === "ready") {
+            addToast(`📄 "${doc.filename}" is ready to study!`, "success");
+          } else if (doc.status === "error") {
+            addToast(`❌ "${doc.filename}" failed to process.`, "error");
+          }
+        }
+      }
+    }
+
+    // Update tracking set
+    prevProcessingIdsRef.current = new Set(
+      documents.filter((d) => d.status === "processing").map((d) => d.id)
+    );
+
     if (hasProcessing && !pollingIntervalRef.current) {
       pollingIntervalRef.current = setInterval(async () => {
         const updated = await fetchDocuments();
@@ -64,7 +95,7 @@ export const DocumentProvider = ({ children }) => {
         pollingIntervalRef.current = null;
       }
     };
-  }, [documents, fetchDocuments]);
+  }, [documents, fetchDocuments, addToast]);
 
   const selectDocument = (doc) => {
     setActiveDocument(doc);
@@ -105,9 +136,11 @@ export const DocumentProvider = ({ children }) => {
         fetchDocuments,
         selectDocument,
         deleteDocument: removeDocument,
+        addToast,
       }}
     >
       {children}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </DocumentContext.Provider>
   );
 };

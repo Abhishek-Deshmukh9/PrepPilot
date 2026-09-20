@@ -148,6 +148,23 @@ class GeminiClient:
             "Decide dynamically whether the answer is best represented as one of: "
             "['step_by_step_visualization', 'mathematical_derivation', 'diagram', 'flowchart', 'timeline', "
             "'concept_map', 'comparison', 'worked_example', 'graph', 'code_visualization'].\n"
+            "When selecting a visual_type, also populate visual_payload with the data needed to render it. "
+            "For mathematical_derivation: include derivation_title, prerequisites (array of strings), "
+            "derivation_steps (array of objects with stepNumber, title, latex, annotation, explanation), "
+            "derivation_conclusion. "
+            "For diagram/flowchart/concept_map/timeline: include diagram_title, mermaid_code (valid Mermaid.js syntax). "
+            "CRITICAL MERMAID SYNTAX RULES for mermaid_code: "
+            "1) Start with 'graph TD' or 'flowchart TD' on its own line, NEVER followed by '[' or any node on the same line. "
+            "2) Each node definition must be on a separate line like: A[\"Label text\"] "
+            "3) Edges on separate lines like: A --> B or A -->|\"edge label\"| B "
+            "4) ALWAYS wrap node labels in double quotes inside brackets: A[\"Air Intake\"] not A[Air Intake]. "
+            "5) Never use special characters ( ) / & - in labels without double quotes. "
+            "6) Use simple alphanumeric node IDs (A, B, C1, node1). "
+            "7) Do NOT use ```mermaid fences, return raw Mermaid code only. "
+            "For comparison: include comparison_title, comparison_columns (array of strings), comparison_rows (array of arrays). "
+            "For code_visualization: include code_title, code_lines (array of strings), trace_steps (array of objects). "
+            "For step_by_step_visualization: include title, array (array of numbers), target (number). "
+            "For graph: include graph_title.\n"
         )
 
         schema = {
@@ -158,6 +175,78 @@ class GeminiClient:
                 "visual_type": {
                     "type": "STRING",
                     "description": "One of: step_by_step_visualization, mathematical_derivation, diagram, flowchart, timeline, concept_map, comparison, worked_example, graph, code_visualization"
+                },
+                "visual_payload": {
+                    "type": "OBJECT",
+                    "description": "Visual data payload matching visual_type. Populate ALL keys relevant to the chosen visual_type.",
+                    "properties": {
+                        "title": {"type": "STRING", "description": "Display title for the visual"},
+                        "visual_type": {"type": "STRING", "description": "Same as the top-level visual_type"},
+                        "diagram_title": {"type": "STRING", "description": "Title for diagram/flowchart/concept_map/timeline visuals"},
+                        "mermaid_code": {"type": "STRING", "description": "Valid Mermaid.js graph/flowchart/timeline definition for diagram/flowchart/concept_map/timeline visuals"},
+                        "derivation_title": {"type": "STRING", "description": "Title for mathematical derivation"},
+                        "prerequisites": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"},
+                            "description": "Prerequisite knowledge items for mathematical derivation"
+                        },
+                        "derivation_steps": {
+                            "type": "ARRAY",
+                            "items": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "stepNumber": {"type": "INTEGER"},
+                                    "title": {"type": "STRING"},
+                                    "latex": {"type": "STRING"},
+                                    "annotation": {"type": "STRING"},
+                                    "explanation": {"type": "STRING"}
+                                },
+                                "required": ["stepNumber", "title", "latex", "explanation"]
+                            },
+                            "description": "Ordered derivation steps for mathematical derivation"
+                        },
+                        "derivation_conclusion": {"type": "STRING", "description": "Final conclusion of mathematical derivation"},
+                        "comparison_title": {"type": "STRING", "description": "Title for comparison matrix"},
+                        "comparison_columns": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"},
+                            "description": "Column headers for comparison matrix"
+                        },
+                        "comparison_rows": {
+                            "type": "ARRAY",
+                            "items": {
+                                "type": "ARRAY",
+                                "items": {"type": "STRING"}
+                            },
+                            "description": "Row data arrays for comparison matrix"
+                        },
+                        "graph_title": {"type": "STRING", "description": "Title for complexity/growth graph"},
+                        "code_title": {"type": "STRING", "description": "Title for code visualization"},
+                        "code_lines": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"},
+                            "description": "Lines of code for code visualization"
+                        },
+                        "trace_steps": {
+                            "type": "ARRAY",
+                            "items": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "line": {"type": "INTEGER"},
+                                    "variables": {"type": "STRING"},
+                                    "explanation": {"type": "STRING"}
+                                }
+                            },
+                            "description": "Execution trace steps for code visualization"
+                        },
+                        "array": {
+                            "type": "ARRAY",
+                            "items": {"type": "NUMBER"},
+                            "description": "Numeric array for step-by-step visualization"
+                        },
+                        "target": {"type": "NUMBER", "description": "Target value for step-by-step search visualization"}
+                    },
+                    "required": ["title", "visual_type"]
                 },
                 "smart_notes": {
                     "type": "OBJECT",
@@ -171,7 +260,7 @@ class GeminiClient:
                 },
                 "followup_questions": {"type": "ARRAY", "items": {"type": "STRING"}}
             },
-            "required": ["answer", "prerequisite_diagnosis", "visual_type", "smart_notes", "followup_questions"]
+            "required": ["answer", "prerequisite_diagnosis", "visual_type", "visual_payload", "smart_notes", "followup_questions"]
         }
 
         history_str = ""
@@ -200,17 +289,23 @@ class GeminiClient:
             logger.warning(f"Companion structured generation failed or fallback needed: {e}")
             # Fallback to standard textual generation if schema fails
             text_ans = await self.generate_answer(context, question, chat_history)
+            # Dynamic fallback — derive content from actual answer, never hardcode topic-specific data
+            truncated_takeaway = (text_ans[:200] + "...") if len(text_ans) > 200 else text_ans
             return {
                 "answer": text_ans,
-                "prerequisite_diagnosis": "Analyzed foundational prerequisites for topic.",
-                "visual_type": "mathematical_derivation",
+                "prerequisite_diagnosis": None,
+                "visual_type": None,
+                "visual_payload": None,
                 "smart_notes": {
-                    "formulas": ["$T(n) = T(n/2) + \\mathcal{O}(1)$", "$\\mathcal{O}(\\log_2 n)$"],
-                    "prerequisites": ["Logarithmic base and exponential halving."],
-                    "key_takeaways": [text_ans[:120] + "..."],
-                    "pitfalls": ["Verify edge cases and sorted order."]
+                    "formulas": [],
+                    "prerequisites": [],
+                    "key_takeaways": [truncated_takeaway],
+                    "pitfalls": []
                 },
-                "followup_questions": ["Can you explain the mathematical derivation?", "What are the common pitfalls?"]
+                "followup_questions": [
+                    "Can you explain this in more detail?",
+                    "What are the key takeaways?"
+                ]
             }
 
     async def generate_answer(

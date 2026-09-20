@@ -127,7 +127,7 @@ const SourceCard = ({ source, index }) => {
 const ChatPage = () => {
   const { activeDocument } = useDocuments();
 
-  const [sessionId] = useState(() => {
+  const [sessionId, setSessionId] = useState(() => {
     let saved = localStorage.getItem("preppilot_chat_session");
     if (!saved) {
       saved = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -158,6 +158,33 @@ const ChatPage = () => {
     inputRef.current?.focus();
   }, []);
 
+  // Load previous chat history from backend on mount or session change
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await chatService.getHistory(sessionId);
+        if (history && history.length > 0) {
+          const restored = [];
+          for (const h of history) {
+            restored.push({ role: "user", text: h.question });
+            restored.push({
+              role: "ai",
+              text: h.answer,
+              sources: h.sources || [],
+              isGrounded: !!(h.sources && h.sources.length > 0),
+              followup_questions: []
+            });
+          }
+          setMessages(restored);
+        }
+      } catch (err) {
+        console.warn("Could not load chat history:", err);
+        // Non-blocking — start fresh if history load fails
+      }
+    };
+    loadHistory();
+  }, [sessionId]);
+
   const sendMessage = useCallback(async (questionText) => {
     const text = (questionText || inputQuestion).trim();
     if (!text || isLoading) return;
@@ -180,6 +207,7 @@ const ChatPage = () => {
         role: "ai",
         text: response.answer || "",
         sources: response.sources || [],
+        isGrounded: !!(activeDocument && response.sources && response.sources.length > 0),
         prerequisite_diagnosis: response.prerequisite_diagnosis,
         visual_payload: response.visual_payload,
         visual_type: response.visual_type,
@@ -191,7 +219,12 @@ const ChatPage = () => {
 
       // Auto-open visual canvas if a visual payload came back
       if (response.visual_payload) {
-        setVisualPayload(response.visual_payload);
+        // Ensure visual_type is always inside the payload for VisualCanvas tab sync
+        const payload = {
+          ...response.visual_payload,
+          visual_type: response.visual_payload.visual_type || response.visual_type
+        };
+        setVisualPayload(payload);
         setShowCanvas(true);
       }
     } catch (err) {
@@ -215,13 +248,25 @@ const ChatPage = () => {
     sendMessage();
   };
 
-  const handleClearHistory = () => {
-    if (window.confirm("Reset this study session and clear chat history?")) {
-      setMessages([]);
-      setVisualPayload(null);
-      setShowCanvas(false);
-      setError("");
+  const handleClearHistory = async () => {
+    if (!window.confirm("Reset this study session and clear chat history?")) return;
+
+    try {
+      await chatService.clearHistory(sessionId);
+    } catch (err) {
+      console.warn("Could not clear backend history:", err);
     }
+
+    // Clear local state
+    setMessages([]);
+    setVisualPayload(null);
+    setShowCanvas(false);
+    setError("");
+
+    // Generate a new session ID so cleared history doesn't reload
+    const newSession = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem("preppilot_chat_session", newSession);
+    setSessionId(newSession);
   };
 
   const handleCopy = async (text, idx) => {
@@ -399,6 +444,12 @@ const ChatPage = () => {
                             <div className="flex items-center space-x-1.5 text-[10px] font-bold text-brand-600 dark:text-brand-400">
                               <ModeIcon className="w-3 h-3" />
                               <span>PrepPilot AI · {currentMode.label} mode</span>
+                              {msg.isGrounded === false && (
+                                <span className="ml-1.5 inline-flex items-center space-x-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[9px] font-medium">
+                                  <HelpCircle className="w-2.5 h-2.5" />
+                                  <span>General knowledge</span>
+                                </span>
+                              )}
                             </div>
                             <button
                               onClick={() => handleCopy(msg.text, idx)}
