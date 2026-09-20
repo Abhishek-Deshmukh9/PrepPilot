@@ -16,7 +16,7 @@
 - Remove need for manual page refresh after upload
 - Add upload progress feedback
 
-### Phase 3: Fix Settings & API Configuration ⬜
+### Phase 3: Fix Settings & API Configuration ✅
 - Update `api.js` to read from `localStorage` with fallback to `VITE_API_URL`
 - Make Settings page actually functional
 

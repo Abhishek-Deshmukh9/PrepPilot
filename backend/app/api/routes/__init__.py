@@ -9,6 +9,7 @@ from app.api.routes.mcq import router as mcq_router
 from app.api.routes.flashcards import router as flashcards_router
 from app.api.routes.interview import router as interview_router
 from app.api.routes.revision import router as revision_router
+from app.api.routes.system import router as system_router
 
 api_router = APIRouter()
 
@@ -22,3 +23,4 @@ api_router.include_router(mcq_router, prefix="/mcqs", tags=["Study Tools"])
 api_router.include_router(flashcards_router, prefix="/flashcards", tags=["Study Tools"])
 api_router.include_router(interview_router, prefix="/interview", tags=["Interview Prep"])
 api_router.include_router(revision_router, prefix="/revision", tags=["Study Tools"])
+api_router.include_router(system_router, tags=["System"])

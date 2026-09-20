@@ -1,7 +1,42 @@
 import axios from "axios";
 
 // Default API base URL from environment
-const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+export const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+
+/**
+ * Normalizes an API URL:
+ * - Trims whitespace
+ * - Ensures http:// or https:// protocol
+ * - Strips trailing slashes
+ * - Ensures a single /api/v1 suffix without duplicating
+ */
+export function normalizeApiUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") {
+    return DEFAULT_API_BASE_URL;
+  }
+
+  let cleaned = rawUrl.trim();
+  if (!cleaned) return DEFAULT_API_BASE_URL;
+
+  // Add protocol if missing
+  if (!/^https?:\/\//i.test(cleaned)) {
+    cleaned = `http://${cleaned}`;
+  }
+
+  // Remove trailing slashes
+  cleaned = cleaned.replace(/\/+$/, "");
+
+  // Check if it already has /api/v1 (or repeated /api/v1)
+  if (/\/api\/v1/i.test(cleaned)) {
+    // Replace any repeated /api/v1 with a single /api/v1 at the end
+    cleaned = cleaned.replace(/(\/api\/v1)+$/i, "/api/v1");
+  } else {
+    // Append /api/v1
+    cleaned = `${cleaned}/api/v1`;
+  }
+
+  return cleaned;
+}
 
 const apiClient = axios.create({
   baseURL: DEFAULT_API_BASE_URL,
@@ -17,7 +52,7 @@ apiClient.interceptors.request.use(
   (config) => {
     const savedUrl = localStorage.getItem("preppilot_api_url");
     if (savedUrl && savedUrl.trim()) {
-      config.baseURL = savedUrl.trim();
+      config.baseURL = normalizeApiUrl(savedUrl);
     }
     return config;
   },
