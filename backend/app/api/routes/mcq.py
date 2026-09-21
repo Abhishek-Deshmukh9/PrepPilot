@@ -30,7 +30,8 @@ async def generate_mcqs(
             document_id=request.document_id,
             count=request.count,
             difficulty=request.difficulty,
-            db=db
+            db=db,
+            force_refresh=request.force_refresh
         )
         
         # Parse into MCQItem list

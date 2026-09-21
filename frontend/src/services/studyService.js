@@ -4,10 +4,11 @@ const studyService = {
   /**
    * Summaries API
    */
-  async generateSummary(documentId, summaryType = "executive") {
+  async generateSummary(documentId, summaryType = "executive", forceRefresh = false) {
     const response = await apiClient.post("/summary/", {
       document_id: documentId,
       summary_type: summaryType,
+      force_refresh: forceRefresh,
     });
     return response.data;
   },
@@ -20,11 +21,12 @@ const studyService = {
   /**
    * MCQ Quiz API
    */
-  async generateMCQs(documentId, count = 10, difficulty = "medium") {
+  async generateMCQs(documentId, count = 10, difficulty = "medium", forceRefresh = false) {
     const response = await apiClient.post("/mcqs/", {
       document_id: documentId,
       count: parseInt(count),
       difficulty: difficulty,
+      force_refresh: forceRefresh,
     });
     return response.data;
   },
@@ -61,9 +63,10 @@ const studyService = {
   /**
    * Key Points API
    */
-  async generateKeyPoints(documentId) {
+  async generateKeyPoints(documentId, forceRefresh = false) {
     const response = await apiClient.post("/keypoints/", {
       document_id: documentId,
+      force_refresh: forceRefresh,
     });
     return response.data;
   },
@@ -76,10 +79,11 @@ const studyService = {
   /**
    * Revision Notes API
    */
-  async generateRevisionNotes(documentId, revisionType = "last_minute") {
+  async generateRevisionNotes(documentId, revisionType = "last_minute", forceRefresh = false) {
     const response = await apiClient.post("/revision/", {
       document_id: documentId,
       revision_type: revisionType,
+      force_refresh: forceRefresh,
     });
     return response.data;
   },

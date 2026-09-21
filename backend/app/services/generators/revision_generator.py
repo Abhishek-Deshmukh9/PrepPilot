@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from datetime import datetime
 import logging
 import os
 
@@ -20,10 +21,11 @@ class RevisionGenerator:
         self, 
         document_id: str, 
         revision_type: str, 
-        db: AsyncSession
+        db: AsyncSession,
+        force_refresh: bool = False
     ) -> GeneratedContent:
         """
-        Check database cache for existing revision notes. If not found,
+        Check database cache for existing revision notes. If not found or force_refresh is True,
         extract document text, generate via Gemini, cache, and return.
         """
         # 1. Check DB Cache
@@ -35,7 +37,7 @@ class RevisionGenerator:
         cache_result = await db.execute(cache_query)
         cached_notes = cache_result.scalar_one_or_none()
         
-        if cached_notes:
+        if cached_notes and not force_refresh:
             logger.info(f"Serving cached '{revision_type}' revision notes for document {document_id}")
             return cached_notes
 
@@ -50,23 +52,29 @@ class RevisionGenerator:
         if not os.path.exists(file_path):
              raise FileNotFoundError("Document file not found on disk")
 
-        logger.info(f"Generating new '{revision_type}' revision notes for document {document_id}")
+        logger.info(f"{'Regenerating' if force_refresh else 'Generating'} '{revision_type}' revision notes for document {document_id}")
         text = DocumentProcessor.extract_text(file_path, doc.file_type)
 
-        # 4. Invoke Gemini API
+        # 4. Invoke Gemini API (if this fails, existing cached_notes is preserved)
         revision_text = await self.gemini_client.generate_revision_notes(text, revision_type)
 
-        # 5. Cache result
-        new_content = GeneratedContent(
-            document_id=document_id,
-            content_type="revision",
-            subtype=revision_type,
-            generated_text=revision_text,
-            model_used=self.gemini_client.model_name
-        )
-        
-        db.add(new_content)
-        await db.commit()
-        await db.refresh(new_content)
-
-        return new_content
+        # 5. Persist or update existing record safely
+        if cached_notes:
+            cached_notes.generated_text = revision_text
+            cached_notes.model_used = self.gemini_client.model_name
+            cached_notes.created_at = datetime.utcnow()
+            await db.commit()
+            await db.refresh(cached_notes)
+            return cached_notes
+        else:
+            new_content = GeneratedContent(
+                document_id=document_id,
+                content_type="revision",
+                subtype=revision_type,
+                generated_text=revision_text,
+                model_used=self.gemini_client.model_name
+            )
+            db.add(new_content)
+            await db.commit()
+            await db.refresh(new_content)
+            return new_content

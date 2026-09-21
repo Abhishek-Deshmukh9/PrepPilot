@@ -9,6 +9,7 @@ import {
   Award,
   ChevronRight,
   RefreshCw,
+  RotateCcw,
   Info
 } from "lucide-react";
 import { useDocuments } from "../contexts/DocumentContext";
@@ -45,12 +46,12 @@ const MCQPage = () => {
     setErrorMsg("");
   }, [activeDocument]);
 
-  const handleStartQuiz = async () => {
+  const handleStartQuiz = async (forceRefresh = false) => {
     if (!activeDocument) return;
     setLoading(true);
     setErrorMsg("");
     try {
-      const data = await studyService.generateMCQs(activeDocument.id, questionCount, difficulty);
+      const data = await studyService.generateMCQs(activeDocument.id, questionCount, difficulty, forceRefresh);
       if (data.mcqs && data.mcqs.length > 0) {
         setMcqs(data.mcqs);
         setQuizStarted(true);
@@ -67,6 +68,16 @@ const MCQPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetakeQuiz = () => {
+    // Reuses the current question set locally without an API or Gemini call
+    setCurrentIdx(0);
+    setSelectedOption(null);
+    setAnswerChecked(false);
+    setScore(0);
+    setQuizFinished(false);
+    setQuizStarted(true);
   };
 
   const handleOptionSelect = (option) => {
@@ -145,13 +156,36 @@ const MCQPage = () => {
            "We recommend reviewing summaries or using RAG Chat before retaking."}
         </div>
 
-        <button
-          onClick={handleRestart}
-          className="w-full flex items-center justify-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-brand-500/10 transition-all hover:scale-[1.02]"
-        >
-          <RefreshCw className="h-4 w-4" />
-          <span>New Practice Quiz</span>
-        </button>
+        <div className="space-y-3 pt-2">
+          {/* Retake current question set without calling Gemini */}
+          <button
+            onClick={handleRetakeQuiz}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-semibold text-xs py-3 rounded-xl border border-slate-200 dark:border-slate-700 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Retake Quiz (Same Questions)</span>
+          </button>
+
+          {/* Generate a genuinely fresh set of questions via force_refresh=true */}
+          <button
+            onClick={() => handleStartQuiz(true)}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-brand-500/10 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <span>{loading ? "Generating Fresh Questions..." : "New Questions (Regenerate)"}</span>
+          </button>
+
+          {/* Reconfigure difficulty/count */}
+          <button
+            onClick={handleRestart}
+            disabled={loading}
+            className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium py-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Change Difficulty or Question Count
+          </button>
+        </div>
       </div>
     );
   }
@@ -326,23 +360,35 @@ const MCQPage = () => {
           </div>
         )}
 
-        <button
-          onClick={handleStartQuiz}
-          disabled={loading}
-          className="w-full flex items-center justify-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs py-3.5 rounded-xl shadow-lg shadow-brand-500/10 disabled:opacity-50 transition-all hover:scale-[1.02]"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Generating Exam Questions...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              <span>Generate Practice Exam</span>
-            </>
-          )}
-        </button>
+        <div className="space-y-2.5">
+          <button
+            onClick={() => handleStartQuiz(false)}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs py-3.5 rounded-xl shadow-lg shadow-brand-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.01] active:scale-[0.99]"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading Questions...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                <span>Start Practice Exam</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => handleStartQuiz(true)}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Bypass cached questions and generate a completely fresh set with Gemini"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Force Generate Fresh Set</span>
+          </button>
+        </div>
       </div>
     </div>
   );

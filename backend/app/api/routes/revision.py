@@ -20,6 +20,7 @@ class RevisionRequest(BaseModel):
     revision_type: Literal["last_minute", "cheat_sheet", "important_questions"] = Field(
         "last_minute", description="Type of revision sheet to generate"
     )
+    force_refresh: bool = Field(False, description="Whether to bypass cached notes and generate fresh content")
 
 class RevisionResponse(BaseModel):
     document_id: str
@@ -40,7 +41,8 @@ async def generate_revision_notes(
         content_record = await generator.get_or_generate_revision_notes(
             document_id=request.document_id,
             revision_type=request.revision_type,
-            db=db
+            db=db,
+            force_refresh=request.force_refresh
         )
         return RevisionResponse(
             document_id=content_record.document_id,

@@ -27,7 +27,8 @@ async def generate_summary(
         content_record = await generator.get_or_generate_summary(
             document_id=request.document_id,
             summary_type=request.summary_type,
-            db=db
+            db=db,
+            force_refresh=request.force_refresh
         )
         return SummaryResponse(
             document_id=content_record.document_id,

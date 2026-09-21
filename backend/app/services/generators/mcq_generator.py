@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from datetime import datetime
 import json
 import logging
 import os
@@ -22,10 +23,11 @@ class MCQGenerator:
         document_id: str, 
         count: int, 
         difficulty: str, 
-        db: AsyncSession
+        db: AsyncSession,
+        force_refresh: bool = False
     ) -> list:
         """
-        Check database cache for existing MCQs. If not found,
+        Check database cache for existing MCQs. If not found or force_refresh is True,
         extract document text, generate via Gemini structured output, cache, and return.
         """
         subtype = f"{count}_{difficulty}"
@@ -39,7 +41,7 @@ class MCQGenerator:
         cache_result = await db.execute(cache_query)
         cached_content = cache_result.scalar_one_or_none()
         
-        if cached_content:
+        if cached_content and not force_refresh:
             logger.info(f"Serving cached MCQs ({subtype}) for document {document_id}")
             try:
                 return json.loads(cached_content.generated_text)
@@ -58,22 +60,30 @@ class MCQGenerator:
         if not os.path.exists(file_path):
              raise FileNotFoundError("Document file not found on disk")
 
-        logger.info(f"Generating new {count} MCQs ({difficulty}) for document {document_id}")
+        logger.info(f"{'Regenerating' if force_refresh else 'Generating'} {count} MCQs ({difficulty}) for document {document_id}")
         text = DocumentProcessor.extract_text(file_path, doc.file_type)
 
-        # 4. Invoke Gemini API
+        # 4. Invoke Gemini API (if this fails, cached_content is preserved)
         mcqs_list = await self.gemini_client.generate_mcqs(text, count, difficulty)
 
-        # 5. Cache result as serialized JSON string in generated_content
-        new_content = GeneratedContent(
-            document_id=document_id,
-            content_type="mcq",
-            subtype=subtype,
-            generated_text=json.dumps(mcqs_list),
-            model_used=self.gemini_client.model_name
-        )
-        
-        db.add(new_content)
-        await db.commit()
+        # 5. Persist or update existing record safely
+        serialized = json.dumps(mcqs_list)
+        if cached_content:
+            cached_content.generated_text = serialized
+            cached_content.model_used = self.gemini_client.model_name
+            cached_content.created_at = datetime.utcnow()
+            await db.commit()
+            await db.refresh(cached_content)
+        else:
+            new_content = GeneratedContent(
+                document_id=document_id,
+                content_type="mcq",
+                subtype=subtype,
+                generated_text=serialized,
+                model_used=self.gemini_client.model_name
+            )
+            db.add(new_content)
+            await db.commit()
+            await db.refresh(new_content)
 
         return mcqs_list

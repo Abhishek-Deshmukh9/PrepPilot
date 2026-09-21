@@ -1,17 +1,17 @@
 # PrepPilot AI — Roadmap
 
-## Milestone 1: Stabilize & Fix (Current)
+## Milestone 1: Stabilize & Fix (Completed)
 
 > **Goal:** Fix all broken features, remove hardcoded mocks, and make every existing feature fully operational end-to-end.
 
-### Phase 1: Fix Chat Page — Remove Mocks, Connect RAG ⬜
+### Phase 1: Fix Chat Page — Remove Mocks, Connect RAG ✅
 - Replace `companionService.js` mock data with real `/api/v1/chat/` integration
 - Redesign ChatPage into clean, document-grounded Socratic AI companion
 - Add pedagogical tutor mode support (Socratic, Direct, Exam Cram, ELI5, Step-by-Step)
 - Add source citations with page numbers and relevance scores
 - Wire `chatService.js` to real backend endpoints
 
-### Phase 2: Fix Upload Polling & Document State ⬜
+### Phase 2: Fix Upload Polling & Document State ✅
 - Add auto-polling in DocumentContext for `processing` → `ready` status transition
 - Remove need for manual page refresh after upload
 - Add upload progress feedback
@@ -30,7 +30,7 @@
 - Ensure unified MarkdownRenderer + KaTeX is used across all study pages
 - Verify math rendering works for LaTeX formulas
 
-### Phase 6: Add Regeneration Capability ⬜
+### Phase 6: Add Regeneration Capability ✅
 - Add "Regenerate / New Set" button to Summary, MCQ, Revision, and Key Points pages
 - Backend support for force-refresh bypassing cache
 

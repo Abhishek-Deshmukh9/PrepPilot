@@ -191,12 +191,12 @@ const KeyPointsPage = () => {
     return cards;
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (forceRefresh = false) => {
     if (!activeDocument) return;
     setLoading(true);
     setErrorMsg("");
     try {
-      const result = await studyService.generateKeyPoints(activeDocument.id);
+      const result = await studyService.generateKeyPoints(activeDocument.id, forceRefresh);
       // Backend returns: { document_id, keypoints: [{ category, points: [] }] }
       const rawKeypoints = result.keypoints || result.key_points || [];
       const cards = transformKeyPoints(rawKeypoints);
@@ -208,12 +208,26 @@ const KeyPointsPage = () => {
     }
   };
 
-  // Reset when document changes
+  // Fetch cached key points on mount or doc change
   useEffect(() => {
-    setKeyPoints([]);
-    setErrorMsg("");
-    setFilter("all");
-    setSearchQuery("");
+    const fetchExisting = async () => {
+      if (!activeDocument) return;
+      setLoading(true);
+      setErrorMsg("");
+      setFilter("all");
+      setSearchQuery("");
+      try {
+        const data = await studyService.getKeyPoints(activeDocument.id);
+        const rawKeypoints = data.keypoints || data.key_points || [];
+        const cards = transformKeyPoints(rawKeypoints);
+        setKeyPoints(cards);
+      } catch (err) {
+        console.error("Failed to load cached key points:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExisting();
   }, [activeDocument]);
 
   // No document selected
@@ -257,16 +271,20 @@ const KeyPointsPage = () => {
           </p>
         </div>
         <button
-          onClick={handleGenerate}
+          onClick={() => handleGenerate(keyPoints.length > 0)}
           disabled={loading}
-          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <RotateCcw className="w-4 h-4" />
           )}
-          <span>{keyPoints.length > 0 ? "Regenerate" : "Extract Key Points"}</span>
+          <span>
+            {keyPoints.length > 0
+              ? (loading ? "Regenerating..." : "Regenerate")
+              : (loading ? "Extracting..." : "Extract Key Points")}
+          </span>
         </button>
       </div>
 

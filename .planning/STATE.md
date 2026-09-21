@@ -3,10 +3,10 @@
 ## Current State
 
 - **Active Milestone:** 1 — Stabilize & Fix
-- **Active Phase:** 5 — ✅ Complete
+- **Active Phase:** 6 — ✅ Complete (Milestone 1 Complete!)
 - **Branch:** `abhishek-changes`
-- **Last Commit:** `cfbd05f` — feat: persist flashcard ratings and improve review workflow
-- **Uncommitted:** Phase 5 code changes
+- **Last Commit:** `054b5fd` — fix: unify markdown and math rendering
+- **Uncommitted:** Phase 6 changes staged for commit
 
 ## Phase Status
 
@@ -17,7 +17,7 @@
 | 3 | Fix Settings & API Configuration | ✅ Done |
 | 4 | Fix Flashcard Persistence | ✅ Done |
 | 5 | Fix Markdown & Content Rendering | ✅ Done |
-| 6 | Add Regeneration Capability | ⬜ Not Started |
+| 6 | Add Regeneration Capability | ✅ Done |
 
 ## Decision Log
 
@@ -47,6 +47,12 @@
 | 22 | Phase 5: Standardized KeyPointsPage on MarkdownRenderer | Concept titles & memory tips render KaTeX/Markdown | 2026-09-20 |
 | 23 | Phase 5: KaTeX overflow scroll styling | Custom cyan scrollbar for wide equations | 2026-09-20 |
 | 24 | Phase 5 execution complete | All tasks implemented, build & rendering verified | 2026-09-20 |
+| 25 | Phase 6: force_refresh default False | Preserves fast, low-cost cached behavior across all endpoints | 2026-09-21 |
+| 26 | Phase 6: Failure safety | Database record preserved intact if regeneration fails | 2026-09-21 |
+| 27 | Phase 6: In-place authoritative record update | Prevents row bloat and ensures single source of truth | 2026-09-21 |
+| 28 | Phase 6: MCQ Retake vs Regenerate | Retake reuses question set locally; Regenerate calls force_refresh=True | 2026-09-21 |
+| 29 | Phase 6: KeyPoints persistence | Extracted key points cached in GeneratedContent with GET endpoint | 2026-09-21 |
+| 30 | Phase 6 execution complete | All tasks implemented, build & backend verified | 2026-09-21 |
 
 ## Blockers
 

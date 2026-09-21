@@ -46,12 +46,12 @@ const RevisionPage = () => {
     fetchExisting();
   }, [activeDocument]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (forceRefresh = false) => {
     if (!activeDocument) return;
     setLoading(true);
     setErrorMsg("");
     try {
-      const result = await studyService.generateRevisionNotes(activeDocument.id, activeTab);
+      const result = await studyService.generateRevisionNotes(activeDocument.id, activeTab, forceRefresh);
       setRevisions((prev) => ({
         ...prev,
         [activeTab]: result.content
@@ -98,12 +98,16 @@ const RevisionPage = () => {
           </p>
         </div>
         <button
-          onClick={handleGenerate}
+          onClick={() => handleGenerate(!!currentContent)}
           disabled={loading}
-          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
+          className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-          <span>{currentContent ? "Regenerate" : "Generate Sheet"}</span>
+          <span>
+            {currentContent
+              ? (loading ? "Regenerating..." : "Regenerate")
+              : (loading ? "Generating..." : "Generate Sheet")}
+          </span>
         </button>
       </div>
 
@@ -113,10 +117,12 @@ const RevisionPage = () => {
           <button
             key={t.id}
             onClick={() => {
+              if (loading) return;
               setActiveTab(t.id);
               setErrorMsg("");
             }}
-            className={`px-5 py-3 text-xs font-semibold border-b-2 transition-all -mb-px shrink-0 ${
+            disabled={loading}
+            className={`px-5 py-3 text-xs font-semibold border-b-2 transition-all -mb-px shrink-0 disabled:opacity-60 disabled:cursor-not-allowed ${
               activeTab === t.id
                 ? "border-brand-500 text-brand-600 dark:text-brand-400"
                 : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
