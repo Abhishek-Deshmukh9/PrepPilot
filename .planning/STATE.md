@@ -3,10 +3,10 @@
 ## Current State
 
 - **Active Milestone:** 1 — Stabilize & Fix
-- **Active Phase:** 4 — ✅ Complete
+- **Active Phase:** 5 — ✅ Complete
 - **Branch:** `abhishek-changes`
-- **Last Commit:** `8f5c504` — feat: make settings and API configuration functional
-- **Uncommitted:** Phase 4 code changes
+- **Last Commit:** `cfbd05f` — feat: persist flashcard ratings and improve review workflow
+- **Uncommitted:** Phase 5 code changes
 
 ## Phase Status
 
@@ -16,7 +16,7 @@
 | 2 | Fix Upload Polling & Document State | ✅ Done |
 | 3 | Fix Settings & API Configuration | ✅ Done |
 | 4 | Fix Flashcard Persistence | ✅ Done |
-| 5 | Fix Markdown & Content Rendering | ⬜ Not Started |
+| 5 | Fix Markdown & Content Rendering | ✅ Done |
 | 6 | Add Regeneration Capability | ⬜ Not Started |
 
 ## Decision Log
@@ -41,6 +41,12 @@
 | 16 | Phase 4: Never auto-regenerate saved decks | Resume Deck view with progress stats, explicit generation action | 2026-09-20 |
 | 17 | Phase 4: All, Hard, Unreviewed study filter modes | Cockpit UI with keyboard navigation shortcuts [1/2/3/Space] | 2026-09-20 |
 | 18 | Phase 4 execution complete | All tasks implemented, build & API verified | 2026-09-20 |
+| 19 | Phase 5: remark-gfm installed and integrated | Markdown tables enabled with custom cockpit styling and scrolling | 2026-09-20 |
+| 20 | Phase 5: LaTeX bracket normalization | `\[...\]` -> `$$...$$` and `\(...\)` -> `$...$` | 2026-09-20 |
+| 21 | Phase 5: Currency disambiguation | Standalone `$100` escaped to `\$100`, preserving math like `$10 + x = 20$` | 2026-09-20 |
+| 22 | Phase 5: Standardized KeyPointsPage on MarkdownRenderer | Concept titles & memory tips render KaTeX/Markdown | 2026-09-20 |
+| 23 | Phase 5: KaTeX overflow scroll styling | Custom cyan scrollbar for wide equations | 2026-09-20 |
+| 24 | Phase 5 execution complete | All tasks implemented, build & rendering verified | 2026-09-20 |
 
 ## Blockers
 

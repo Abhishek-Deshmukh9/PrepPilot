@@ -25,7 +25,7 @@
 - Add "Review Hard Cards" filter mode
 - Prepare for SM-2 spaced repetition scheduling
 
-### Phase 5: Fix Markdown & Content Rendering ⬜
+### Phase 5: Fix Markdown & Content Rendering ✅
 - Replace buggy regex string-splitters in SummaryPage and RevisionPage
 - Ensure unified MarkdownRenderer + KaTeX is used across all study pages
 - Verify math rendering works for LaTeX formulas

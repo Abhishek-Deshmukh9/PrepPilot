@@ -1,5 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
@@ -12,12 +13,9 @@ import rehypeKatex from "rehype-katex";
  *   \r → U+000D (CR)         — corrupts \rightarrow, \rho …
  *   \v → U+000B (vert-tab)   — corrupts \vec, \vee …
  *   \t → U+0009 (tab)        — corrupts \text, \times, \theta …
- *
- * Strategy for \t: only restore it INSIDE math delimiters ($…$ / $$…$$)
- * so real tab indentation in code blocks is preserved.
  */
 
-// Restore control-char → backslash for unambiguous cases (never inside plain text)
+// Restore control-char → backslash for unambiguous cases
 const UNCONDITIONAL_FIXES = [
   [/\x08([a-zA-Z@{\\])/g, "\\$1"],  // \b → \b…
   [/\x0C([a-zA-Z@{\\])/g, "\\$1"],  // \f → \f…
@@ -27,22 +25,54 @@ const UNCONDITIONAL_FIXES = [
 
 // Restore \t only when it sits between math delimiters
 const fixTabInMath = (text) =>
-  // Match $$…$$ and $…$ blocks and replace \t inside them
   text.replace(/(\${1,2})([\s\S]*?)(\1)/g, (match, open, body, close) =>
     open + body.replace(/\x09([a-zA-Z@{\\])/g, "\\$1") + close
   );
 
-const fixLatexEscapes = (text) => {
+/**
+ * Normalizes LaTeX delimiters and disambiguates currency figures from math blocks.
+ *
+ * 1. Converts standard LLM bracket notation:
+ *    \[ ... \] → $$ ... $$ (display math)
+ *    \( ... \) → $ ... $   (inline math)
+ *
+ * 2. Protects standalone currency ($50, $100.00, $50/mo, $1,000) from being
+ *    treated as math delimiters by escaping them as \$.
+ *    Legitimate math formulas starting with numbers (e.g. $10 + x = 20$) are preserved.
+ */
+const normalizeMarkdownAndMath = (text) => {
   if (!text || typeof text !== "string") return text;
   let s = text;
+
+  // Step 1: Restore JSON control characters
   for (const [pattern, replacement] of UNCONDITIONAL_FIXES) {
     s = s.replace(pattern, replacement);
   }
+
+  // Step 2: Normalize display math \[ ... \] or \\[ ... \\] to $$ ... $$
+  s = s.replace(/\\\\?\[([\s\S]*?)\\\\?\]/g, (match, inner) => {
+    return `\n\n$$\n${inner.trim()}\n$$\n\n`;
+  });
+
+  // Step 3: Normalize inline math \( ... \) or \\( ... \\) to $ ... $
+  s = s.replace(/\\\\?\(([\s\S]*?)\\\\?\)/g, (match, inner) => {
+    return `$${inner.trim()}$`;
+  });
+
+  // Step 4: Fix tabs inside math blocks
   s = fixTabInMath(s);
+
+  // Step 5: Protect standalone currency figures
+  // Matches $ followed immediately by digits and currency suffix, but NOT followed by math operators
+  s = s.replace(
+    /(^|[\s(])\$(\d+(?:,\d{3})*(?:\.\d+)?(?:[a-zA-Z/]+)?)(?=$|[\s,;!?.)])(?!\s*[-+*=<>^_\\/])/g,
+    (match, prefix, amount) => `${prefix}\\$${amount}`
+  );
+
   return s;
 };
 
-// Shared rehype-katex config
+// Shared rehype-katex config with graceful error handling
 const KATEX_OPTIONS = {
   throwOnError: false,    // never crash — degrade to highlighted error text
   strict: false,          // accept extended/non-standard commands
@@ -52,32 +82,31 @@ const KATEX_OPTIONS = {
 };
 
 /**
- * MarkdownRenderer — single, reliable renderer for all AI-generated content.
+ * MarkdownRenderer — single, reliable renderer for all AI-generated content in PrepPilot.
  *
  * Handles:
- *   • Full Markdown:  headings, bold, italic, lists, ordered lists,
- *                     code blocks, inline code, tables, blockquotes, links
- *   • Inline LaTeX:   $x^2 + y^2$
- *   • Block LaTeX:    $$\frac{a}{b}$$
- *   • Mixed content:  prose paragraphs containing both Markdown and math
- *   • JSON-corrupted LaTeX backslash sequences (auto-fixed before render)
+ *   • Full Markdown & GFM: headings, bold, italic, lists, code blocks, tables, blockquotes
+ *   • Inline LaTeX:        $x^2 + y^2$ and \( O(\log n) \)
+ *   • Block LaTeX:         $$\frac{a}{b}$$ and \[ T(n) = 2T(n/2) + O(n) \]
+ *   • Currency protection: $50, $100/mo, $1,000 preserved as text
+ *   • JSON-corrupted LaTeX backslash sequences auto-restored
  *
  * Props:
  *   content   {string}  — raw text (may contain Markdown + LaTeX)
- *   compact   {bool}    — suppress paragraph bottom-margin (chat bubbles, cards)
- *   className {string}  — extra Tailwind classes on the wrapper div
+ *   compact   {bool}    — suppress paragraph bottom-margin (chat bubbles, cards, table cells)
+ *   className {string}  — extra Tailwind classes on wrapper div
  */
 const MarkdownRenderer = ({ content = "", compact = false, className = "" }) => {
   if (!content || typeof content !== "string") return null;
 
-  const safeContent = fixLatexEscapes(content);
+  const safeContent = normalizeMarkdownAndMath(content);
 
   return (
     <div
       className={`markdown-body leading-relaxed select-text ${compact ? "compact" : ""} ${className}`}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkMath]}
+        remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[[rehypeKatex, KATEX_OPTIONS]]}
         components={{
           // ── Headings ────────────────────────────────────────────────────
@@ -133,13 +162,7 @@ const MarkdownRenderer = ({ content = "", compact = false, className = "" }) => 
           ),
 
           // ── Code (inline + block) ────────────────────────────────────────
-          // react-markdown v9+: check node to determine inline vs block
           code: ({ node, className: cls, children, ...props }) => {
-            const isInline = !node?.position || node?.tagName !== "code"
-              ? false
-              : !(node?.properties?.className || []).includes("language-");
-
-            // Simpler heuristic: if there's no language class it's likely inline
             const hasLang = cls && cls.startsWith("language-");
 
             if (!hasLang) {
@@ -172,26 +195,38 @@ const MarkdownRenderer = ({ content = "", compact = false, className = "" }) => 
             </blockquote>
           ),
 
-          // ── Tables ───────────────────────────────────────────────────────
+          // ── Tables (with horizontal scroll & cockpit styling) ────────────
           table: ({ children }) => (
-            <div className="my-3 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-              <table className="w-full text-xs text-left">{children}</table>
+            <div className="my-4 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <table className="w-full text-xs text-left border-collapse min-w-[320px]">
+                {children}
+              </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+            <thead className="bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
               {children}
             </thead>
           ),
+          tbody: ({ children }) => (
+            <tbody className="divide-y divide-slate-200/50 dark:divide-slate-800/50 bg-white/40 dark:bg-slate-950/40">
+              {children}
+            </tbody>
+          ),
           th: ({ children }) => (
-            <th className="px-3 py-2 font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide text-[10px]">
+            <th className="px-3.5 py-2.5 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800/50">
+            <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 leading-relaxed">
               {children}
             </td>
+          ),
+          tr: ({ children }) => (
+            <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors">
+              {children}
+            </tr>
           ),
 
           // ── Misc ─────────────────────────────────────────────────────────
@@ -203,7 +238,7 @@ const MarkdownRenderer = ({ content = "", compact = false, className = "" }) => 
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-600 dark:text-brand-400 hover:underline"
+              className="text-brand-600 dark:text-brand-400 hover:underline font-medium"
             >
               {children}
             </a>
@@ -217,3 +252,4 @@ const MarkdownRenderer = ({ content = "", compact = false, className = "" }) => 
 };
 
 export default MarkdownRenderer;
+export { MarkdownRenderer };

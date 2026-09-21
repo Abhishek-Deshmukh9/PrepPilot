@@ -18,6 +18,7 @@ import {
 import { useDocuments } from "../contexts/DocumentContext";
 import studyService from "../services/studyService";
 import { MathRenderer } from "../components/common/MathRenderer";
+import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 // ─── Priority Badge ──────────────────────────────────────────────────────────
 const PriorityBadge = ({ priority }) => {
@@ -61,9 +62,9 @@ const KeyPointCard = ({ point, index }) => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                {point.concept || point.title || `Key Point ${index + 1}`}
-              </h3>
+              <div className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                <MarkdownRenderer content={point.concept || point.title || `Key Point ${index + 1}`} compact />
+              </div>
               {point.priority && <PriorityBadge priority={point.priority} />}
               {point.category && (
                 <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[10px] font-semibold border border-slate-200 dark:border-slate-700">
@@ -120,7 +121,9 @@ const KeyPointCard = ({ point, index }) => {
           {point.memory_tip && (
             <div className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">💡 Memory Tip</p>
-              <p className="text-amber-800 dark:text-amber-300">{point.memory_tip}</p>
+              <div className="text-amber-800 dark:text-amber-300">
+                <MarkdownRenderer content={point.memory_tip} compact />
+              </div>
             </div>
           )}
 
