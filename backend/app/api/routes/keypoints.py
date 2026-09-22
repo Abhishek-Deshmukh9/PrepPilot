@@ -41,13 +41,17 @@ async def get_cached_keypoints(
     """
     Retrieve previously extracted key points for a document if cached.
     """
-    cache_query = select(GeneratedContent).where(
-        GeneratedContent.document_id == document_id,
-        GeneratedContent.content_type == "keypoints",
-        GeneratedContent.subtype == "all"
+    cache_query = (
+        select(GeneratedContent)
+        .where(
+            GeneratedContent.document_id == document_id,
+            GeneratedContent.content_type == "keypoints",
+            GeneratedContent.subtype == "all"
+        )
+        .order_by(GeneratedContent.created_at.desc())
     )
     result = await db.execute(cache_query)
-    cached_record = result.scalar_one_or_none()
+    cached_record = result.scalars().first()
 
     if not cached_record:
         return KeyPointsResponse(document_id=document_id, keypoints=[])
@@ -76,13 +80,17 @@ async def extract_document_keypoints(
     from a document. Uses Gemini AI and caches result in SQLite.
     """
     # 1. Check DB Cache
-    cache_query = select(GeneratedContent).where(
-        GeneratedContent.document_id == request.document_id,
-        GeneratedContent.content_type == "keypoints",
-        GeneratedContent.subtype == "all"
+    cache_query = (
+        select(GeneratedContent)
+        .where(
+            GeneratedContent.document_id == request.document_id,
+            GeneratedContent.content_type == "keypoints",
+            GeneratedContent.subtype == "all"
+        )
+        .order_by(GeneratedContent.created_at.desc())
     )
     cache_result = await db.execute(cache_query)
-    cached_record = cache_result.scalar_one_or_none()
+    cached_record = cache_result.scalars().first()
 
     if cached_record and not request.force_refresh:
         logger.info(f"Serving cached key points for document {request.document_id}")

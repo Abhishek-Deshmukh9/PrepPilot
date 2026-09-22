@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Sparkles, 
   FileText, 
@@ -14,6 +14,12 @@ import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const SummaryPage = () => {
   const { activeDocument } = useDocuments();
+  const activeDocRef = useRef(activeDocument);
+
+  useEffect(() => {
+    activeDocRef.current = activeDocument;
+  }, [activeDocument]);
+
   const [activeTab, setActiveTab] = useState("executive");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -25,12 +31,19 @@ const SummaryPage = () => {
 
   // Fetch existing summaries on mount or doc change
   useEffect(() => {
+    if (!activeDocument) {
+      setSummaries({ executive: "", detailed: "", revision: "" });
+      setLoading(false);
+      setErrorMsg("");
+      return;
+    }
+    const targetDocId = activeDocument.id;
     const fetchExisting = async () => {
-      if (!activeDocument) return;
       setLoading(true);
       setErrorMsg("");
       try {
-        const data = await studyService.getSummaries(activeDocument.id);
+        const data = await studyService.getSummaries(targetDocId);
+        if (activeDocRef.current?.id !== targetDocId) return;
         const map = { executive: "", detailed: "", revision: "" };
         data.forEach((s) => {
           if (map.hasOwnProperty(s.summary_type)) {
@@ -39,9 +52,12 @@ const SummaryPage = () => {
         });
         setSummaries(map);
       } catch (err) {
+        if (activeDocRef.current?.id !== targetDocId) return;
         console.error("Failed to load summaries:", err);
       } finally {
-        setLoading(false);
+        if (activeDocRef.current?.id === targetDocId) {
+          setLoading(false);
+        }
       }
     };
     fetchExisting();
@@ -49,18 +65,23 @@ const SummaryPage = () => {
 
   const handleGenerate = async (forceRefresh = false) => {
     if (!activeDocument) return;
+    const targetDocId = activeDocument.id;
     setLoading(true);
     setErrorMsg("");
     try {
-      const result = await studyService.generateSummary(activeDocument.id, activeTab, forceRefresh);
+      const result = await studyService.generateSummary(targetDocId, activeTab, forceRefresh);
+      if (activeDocRef.current?.id !== targetDocId) return;
       setSummaries((prev) => ({
         ...prev,
         [activeTab]: result.content
       }));
     } catch (err) {
+      if (activeDocRef.current?.id !== targetDocId) return;
       setErrorMsg(err.message || "Failed to generate summary. Please try again.");
     } finally {
-      setLoading(false);
+      if (activeDocRef.current?.id === targetDocId) {
+        setLoading(false);
+      }
     }
   };
 

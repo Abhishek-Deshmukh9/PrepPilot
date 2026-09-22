@@ -29,13 +29,17 @@ class SummaryGenerator:
         extract document text, generate via Gemini, update or insert in DB, and return.
         """
         # 1. Check DB Cache
-        cache_query = select(GeneratedContent).where(
-            GeneratedContent.document_id == document_id,
-            GeneratedContent.content_type == "summary",
-            GeneratedContent.subtype == summary_type
+        cache_query = (
+            select(GeneratedContent)
+            .where(
+                GeneratedContent.document_id == document_id,
+                GeneratedContent.content_type == "summary",
+                GeneratedContent.subtype == summary_type
+            )
+            .order_by(GeneratedContent.created_at.desc())
         )
         cache_result = await db.execute(cache_query)
-        cached_summary = cache_result.scalar_one_or_none()
+        cached_summary = cache_result.scalars().first()
         
         if cached_summary and not force_refresh:
             logger.info(f"Serving cached {summary_type} summary for document {document_id}")

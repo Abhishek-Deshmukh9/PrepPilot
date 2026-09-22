@@ -22,10 +22,11 @@ class FlashcardGenerator:
         document_id: str, 
         deck_name: str, 
         count: int, 
-        db: AsyncSession
+        db: AsyncSession,
+        force_refresh: bool = False
     ) -> List[Flashcard]:
         """
-        Check SQLite DB for existing flashcards in this deck. If not found,
+        Check SQLite DB for existing flashcards in this deck. If not found or force_refresh is True,
         extract document text, generate via Gemini structured output, persist each item
         to the flashcards table, and return them.
         """
@@ -37,7 +38,7 @@ class FlashcardGenerator:
         cache_result = await db.execute(cache_query)
         cached_flashcards = cache_result.scalars().all()
         
-        if cached_flashcards:
+        if cached_flashcards and not force_refresh:
             logger.info(f"Serving {len(cached_flashcards)} cached flashcards from deck '{deck_name}' for doc {document_id}")
             return list(cached_flashcards)
 
@@ -52,13 +53,18 @@ class FlashcardGenerator:
         if not os.path.exists(file_path):
              raise FileNotFoundError("Document file not found on disk")
 
-        logger.info(f"Generating new {count} flashcards for deck '{deck_name}' from doc {document_id}")
+        logger.info(f"{'Regenerating' if force_refresh else 'Generating'} {count} flashcards for deck '{deck_name}' from doc {document_id}")
         text = DocumentProcessor.extract_text(file_path, doc.file_type)
 
         # 4. Invoke Gemini API
         flashcards_list = await self.gemini_client.generate_flashcards(text, count)
 
-        # 5. Insert flashcard items into DB
+        # 5. Atomic replacement on successful generation: Delete previous deck cards if refreshing
+        if cached_flashcards:
+            for old_card in cached_flashcards:
+                await db.delete(old_card)
+
+        # 6. Insert new flashcard items into DB
         db_flashcards = []
         for card in flashcards_list:
              db_card = Flashcard(

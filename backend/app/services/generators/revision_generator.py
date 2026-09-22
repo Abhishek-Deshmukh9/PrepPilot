@@ -29,13 +29,17 @@ class RevisionGenerator:
         extract document text, generate via Gemini, cache, and return.
         """
         # 1. Check DB Cache
-        cache_query = select(GeneratedContent).where(
-            GeneratedContent.document_id == document_id,
-            GeneratedContent.content_type == "revision",
-            GeneratedContent.subtype == revision_type
+        cache_query = (
+            select(GeneratedContent)
+            .where(
+                GeneratedContent.document_id == document_id,
+                GeneratedContent.content_type == "revision",
+                GeneratedContent.subtype == revision_type
+            )
+            .order_by(GeneratedContent.created_at.desc())
         )
         cache_result = await db.execute(cache_query)
-        cached_notes = cache_result.scalar_one_or_none()
+        cached_notes = cache_result.scalars().first()
         
         if cached_notes and not force_refresh:
             logger.info(f"Serving cached '{revision_type}' revision notes for document {document_id}")

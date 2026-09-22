@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Zap,
   FileText,
@@ -150,6 +150,12 @@ const KeyPointCard = ({ point, index }) => {
 // ─── Main Key Points Page ────────────────────────────────────────────────────
 const KeyPointsPage = () => {
   const { activeDocument } = useDocuments();
+  const activeDocRef = useRef(activeDocument);
+
+  useEffect(() => {
+    activeDocRef.current = activeDocument;
+  }, [activeDocument]);
+
   const [keyPoints, setKeyPoints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -193,38 +199,55 @@ const KeyPointsPage = () => {
 
   const handleGenerate = async (forceRefresh = false) => {
     if (!activeDocument) return;
+    const targetDocId = activeDocument.id;
     setLoading(true);
     setErrorMsg("");
     try {
-      const result = await studyService.generateKeyPoints(activeDocument.id, forceRefresh);
+      const result = await studyService.generateKeyPoints(targetDocId, forceRefresh);
+      if (activeDocRef.current?.id !== targetDocId) return;
       // Backend returns: { document_id, keypoints: [{ category, points: [] }] }
       const rawKeypoints = result.keypoints || result.key_points || [];
       const cards = transformKeyPoints(rawKeypoints);
       setKeyPoints(cards);
     } catch (err) {
+      if (activeDocRef.current?.id !== targetDocId) return;
       setErrorMsg(err.message || "Failed to generate key points. Please try again.");
     } finally {
-      setLoading(false);
+      if (activeDocRef.current?.id === targetDocId) {
+        setLoading(false);
+      }
     }
   };
 
   // Fetch cached key points on mount or doc change
   useEffect(() => {
+    if (!activeDocument) {
+      setKeyPoints([]);
+      setLoading(false);
+      setErrorMsg("");
+      setFilter("all");
+      setSearchQuery("");
+      return;
+    }
+    const targetDocId = activeDocument.id;
     const fetchExisting = async () => {
-      if (!activeDocument) return;
       setLoading(true);
       setErrorMsg("");
       setFilter("all");
       setSearchQuery("");
       try {
-        const data = await studyService.getKeyPoints(activeDocument.id);
+        const data = await studyService.getKeyPoints(targetDocId);
+        if (activeDocRef.current?.id !== targetDocId) return;
         const rawKeypoints = data.keypoints || data.key_points || [];
         const cards = transformKeyPoints(rawKeypoints);
         setKeyPoints(cards);
       } catch (err) {
+        if (activeDocRef.current?.id !== targetDocId) return;
         console.error("Failed to load cached key points:", err);
       } finally {
-        setLoading(false);
+        if (activeDocRef.current?.id === targetDocId) {
+          setLoading(false);
+        }
       }
     };
     fetchExisting();

@@ -33,13 +33,17 @@ class MCQGenerator:
         subtype = f"{count}_{difficulty}"
         
         # 1. Check DB Cache
-        cache_query = select(GeneratedContent).where(
-            GeneratedContent.document_id == document_id,
-            GeneratedContent.content_type == "mcq",
-            GeneratedContent.subtype == subtype
+        cache_query = (
+            select(GeneratedContent)
+            .where(
+                GeneratedContent.document_id == document_id,
+                GeneratedContent.content_type == "mcq",
+                GeneratedContent.subtype == subtype
+            )
+            .order_by(GeneratedContent.created_at.desc())
         )
         cache_result = await db.execute(cache_query)
-        cached_content = cache_result.scalar_one_or_none()
+        cached_content = cache_result.scalars().first()
         
         if cached_content and not force_refresh:
             logger.info(f"Serving cached MCQs ({subtype}) for document {document_id}")

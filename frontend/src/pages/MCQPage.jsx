@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   HelpCircle, 
   Sparkles, 
@@ -18,6 +18,12 @@ import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const MCQPage = () => {
   const { activeDocument } = useDocuments();
+  const activeDocRef = useRef(activeDocument);
+
+  useEffect(() => {
+    activeDocRef.current = activeDocument;
+  }, [activeDocument]);
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   
@@ -36,6 +42,7 @@ const MCQPage = () => {
 
   // Reset states when active document changes
   useEffect(() => {
+    setLoading(false);
     setQuizStarted(false);
     setMcqs([]);
     setCurrentIdx(0);
@@ -48,10 +55,12 @@ const MCQPage = () => {
 
   const handleStartQuiz = async (forceRefresh = false) => {
     if (!activeDocument) return;
+    const targetDocId = activeDocument.id;
     setLoading(true);
     setErrorMsg("");
     try {
-      const data = await studyService.generateMCQs(activeDocument.id, questionCount, difficulty, forceRefresh);
+      const data = await studyService.generateMCQs(targetDocId, questionCount, difficulty, forceRefresh);
+      if (activeDocRef.current?.id !== targetDocId) return;
       if (data.mcqs && data.mcqs.length > 0) {
         setMcqs(data.mcqs);
         setQuizStarted(true);
@@ -64,9 +73,12 @@ const MCQPage = () => {
          throw new Error("No MCQs could be generated from this document.");
       }
     } catch (err) {
+      if (activeDocRef.current?.id !== targetDocId) return;
       setErrorMsg(err.message || "Failed to generate MCQs. Please try again.");
     } finally {
-      setLoading(false);
+      if (activeDocRef.current?.id === targetDocId) {
+        setLoading(false);
+      }
     }
   };
 

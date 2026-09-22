@@ -34,7 +34,8 @@ async def generate_flashcards(
             document_id=request.document_id,
             deck_name=request.deck_name,
             count=request.count,
-            db=db
+            db=db,
+            force_refresh=request.force_refresh
         )
         
         # Format response

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Sparkles, 
   FileText, 
@@ -13,6 +13,12 @@ import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const RevisionPage = () => {
   const { activeDocument } = useDocuments();
+  const activeDocRef = useRef(activeDocument);
+
+  useEffect(() => {
+    activeDocRef.current = activeDocument;
+  }, [activeDocument]);
+
   const [activeTab, setActiveTab] = useState("last_minute");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -24,12 +30,19 @@ const RevisionPage = () => {
 
   // Fetch existing revision notes on mount or doc swap
   useEffect(() => {
+    if (!activeDocument) {
+      setRevisions({ last_minute: "", cheat_sheet: "", important_questions: "" });
+      setLoading(false);
+      setErrorMsg("");
+      return;
+    }
+    const targetDocId = activeDocument.id;
     const fetchExisting = async () => {
-      if (!activeDocument) return;
       setLoading(true);
       setErrorMsg("");
       try {
-        const data = await studyService.getRevisionNotes(activeDocument.id);
+        const data = await studyService.getRevisionNotes(targetDocId);
+        if (activeDocRef.current?.id !== targetDocId) return;
         const map = { last_minute: "", cheat_sheet: "", important_questions: "" };
         data.forEach((r) => {
           if (map.hasOwnProperty(r.revision_type)) {
@@ -38,9 +51,12 @@ const RevisionPage = () => {
         });
         setRevisions(map);
       } catch (err) {
+        if (activeDocRef.current?.id !== targetDocId) return;
         console.error("Failed to load revision notes:", err);
       } finally {
-        setLoading(false);
+        if (activeDocRef.current?.id === targetDocId) {
+          setLoading(false);
+        }
       }
     };
     fetchExisting();
@@ -48,18 +64,23 @@ const RevisionPage = () => {
 
   const handleGenerate = async (forceRefresh = false) => {
     if (!activeDocument) return;
+    const targetDocId = activeDocument.id;
     setLoading(true);
     setErrorMsg("");
     try {
-      const result = await studyService.generateRevisionNotes(activeDocument.id, activeTab, forceRefresh);
+      const result = await studyService.generateRevisionNotes(targetDocId, activeTab, forceRefresh);
+      if (activeDocRef.current?.id !== targetDocId) return;
       setRevisions((prev) => ({
         ...prev,
         [activeTab]: result.content
       }));
     } catch (err) {
+      if (activeDocRef.current?.id !== targetDocId) return;
       setErrorMsg(err.message || "Failed to generate revision sheet. Try again.");
     } finally {
-      setLoading(false);
+      if (activeDocRef.current?.id === targetDocId) {
+        setLoading(false);
+      }
     }
   };
 

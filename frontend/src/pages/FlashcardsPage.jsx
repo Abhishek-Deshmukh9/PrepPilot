@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { 
   Copy, 
   Sparkles, 
@@ -24,6 +24,11 @@ import MarkdownRenderer from "../components/common/MarkdownRenderer";
 
 const FlashcardsPage = () => {
   const { activeDocument, addToast } = useDocuments();
+  const activeDocRef = useRef(activeDocument);
+
+  useEffect(() => {
+    activeDocRef.current = activeDocument;
+  }, [activeDocument]);
   
   // Loading & Error States
   const [loading, setLoading] = useState(false);
@@ -42,6 +47,7 @@ const FlashcardsPage = () => {
 
   // Study Session Navigation & State
   const [filterMode, setFilterMode] = useState("all"); // 'all' | 'hard' | 'unreviewed'
+  const [reviewQueueIds, setReviewQueueIds] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
@@ -55,6 +61,7 @@ const FlashcardsPage = () => {
     setErrorMsg("");
     try {
       const data = await studyService.getFlashcards(docId);
+      if (activeDocRef.current?.id !== docId) return;
       if (data && Array.isArray(data) && data.length > 0) {
         // Backend SQLite is source of truth
         setCards(data);
@@ -65,22 +72,16 @@ const FlashcardsPage = () => {
         });
         localStorage.setItem(getCacheKey(docId), JSON.stringify(ratingMap));
       } else {
-        // Check offline/local fallback if backend returned empty
-        const savedCache = localStorage.getItem(getCacheKey(docId));
-        if (savedCache) {
-          try {
-            const parsed = JSON.parse(savedCache);
-            // Only keep if we have card references
-          } catch (e) {}
-        }
         setCards([]);
       }
     } catch (err) {
+      if (activeDocRef.current?.id !== docId) return;
       console.warn("Could not fetch existing flashcards from backend:", err);
-      // Offline fallback: try to load cached ratings if any
       setCards([]);
     } finally {
-      setIsFetchingExisting(false);
+      if (activeDocRef.current?.id === docId) {
+        setIsFetchingExisting(false);
+      }
     }
   }, []);
 
@@ -88,6 +89,7 @@ const FlashcardsPage = () => {
   useEffect(() => {
     setDeckActive(false);
     setIsDeckFinished(false);
+    setReviewQueueIds([]);
     setCurrentIdx(0);
     setFlipped(false);
     setFilterMode("all");
@@ -122,23 +124,25 @@ const FlashcardsPage = () => {
     return { total, easy, medium, hard, unreviewed, masteredPercent };
   }, [cards]);
 
-  // Filtered Cards Queue
-  const filteredCards = useMemo(() => {
-    if (filterMode === "hard") {
-      return cards.filter((c) => (c.difficulty || "unreviewed") === "hard");
-    }
-    if (filterMode === "unreviewed") {
-      return cards.filter((c) => (c.difficulty || "unreviewed") === "unreviewed");
-    }
-    return cards;
-  }, [cards, filterMode]);
+  // Active Review Session Queue (Frozen on session start)
+  const reviewCards = useMemo(() => {
+    if (!deckActive || reviewQueueIds.length === 0) return [];
+    return reviewQueueIds.map((id) => cards.find((c) => c.id === id)).filter(Boolean);
+  }, [deckActive, reviewQueueIds, cards]);
 
   // Safe active card reference
-  const currentCard = filteredCards[currentIdx] || null;
+  const currentCard = reviewCards[currentIdx] || null;
 
   // Handler: Start or Resume Deck
   const handleStartReview = (filter = "all") => {
     setFilterMode(filter);
+    let matchedCards = cards;
+    if (filter === "hard") {
+      matchedCards = cards.filter((c) => (c.difficulty || "unreviewed") === "hard");
+    } else if (filter === "unreviewed") {
+      matchedCards = cards.filter((c) => (c.difficulty || "unreviewed") === "unreviewed");
+    }
+    setReviewQueueIds(matchedCards.map((c) => c.id));
     setCurrentIdx(0);
     setFlipped(false);
     setIsDeckFinished(false);
@@ -149,12 +153,15 @@ const FlashcardsPage = () => {
   const handleGenerateNewDeck = async (e) => {
     e?.preventDefault();
     if (!activeDocument) return;
+    const targetDocId = activeDocument.id;
     setLoading(true);
     setErrorMsg("");
     try {
-      const data = await studyService.generateFlashcards(activeDocument.id, deckName, cardCount);
+      const data = await studyService.generateFlashcards(targetDocId, deckName, cardCount, true);
+      if (activeDocRef.current?.id !== targetDocId) return;
       if (data.flashcards && data.flashcards.length > 0) {
         setCards(data.flashcards);
+        setReviewQueueIds(data.flashcards.map((c) => c.id));
         setShowGeneratorForm(false);
         setFilterMode("all");
         setCurrentIdx(0);
@@ -166,10 +173,13 @@ const FlashcardsPage = () => {
         throw new Error("No flashcards could be generated from this document.");
       }
     } catch (err) {
+      if (activeDocRef.current?.id !== targetDocId) return;
       setErrorMsg(err.message || "Failed to generate flashcards. Please try again.");
       addToast?.(err.message || "Flashcard generation failed.", "error");
     } finally {
-      setLoading(false);
+      if (activeDocRef.current?.id === targetDocId) {
+        setLoading(false);
+      }
     }
   };
 
@@ -180,7 +190,7 @@ const FlashcardsPage = () => {
 
   // Handler: Next Card
   const handleNext = () => {
-    if (currentIdx < filteredCards.length - 1) {
+    if (currentIdx < reviewCards.length - 1) {
       setFlipped(false);
       setTimeout(() => {
         setCurrentIdx((prev) => prev + 1);
@@ -234,8 +244,8 @@ const FlashcardsPage = () => {
       );
     }
 
-    // Auto-advance
-    if (currentIdx < filteredCards.length - 1) {
+    // Auto-advance without shifting the queue
+    if (currentIdx < reviewCards.length - 1) {
       handleNext();
     } else {
       setIsDeckFinished(true);
@@ -275,7 +285,7 @@ const FlashcardsPage = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [deckActive, isDeckFinished, currentCard, flipped, currentIdx, filteredCards.length]);
+  }, [deckActive, isDeckFinished, currentCard, flipped, currentIdx, reviewCards.length]);
 
   // NO ACTIVE DOCUMENT
   if (!activeDocument) {
@@ -303,7 +313,7 @@ const FlashcardsPage = () => {
   }
 
   // ACTIVE DECK STUDY VIEW
-  if (deckActive && !isDeckFinished && filteredCards.length > 0) {
+  if (deckActive && !isDeckFinished && reviewCards.length > 0) {
     const card = currentCard;
     const currentRating = card?.difficulty || "unreviewed";
 
@@ -317,7 +327,7 @@ const FlashcardsPage = () => {
                 {card?.deck_name || "Study Deck"}
               </span>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold">
-                Card {currentIdx + 1} of {filteredCards.length}
+                Card {currentIdx + 1} of {reviewCards.length}
               </span>
             </div>
 
@@ -565,7 +575,7 @@ const FlashcardsPage = () => {
               <ArrowLeft className="h-4 w-4" />
             </button>
             
-            {currentIdx === filteredCards.length - 1 ? (
+            {currentIdx === reviewCards.length - 1 ? (
               <button
                 onClick={() => setIsDeckFinished(true)}
                 className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]"
@@ -589,7 +599,7 @@ const FlashcardsPage = () => {
   }
 
   // EMPTY FILTER STATE (When active deck is on a filter with 0 items)
-  if (deckActive && filteredCards.length === 0) {
+  if (deckActive && reviewCards.length === 0) {
     return (
       <div className="max-w-md mx-auto space-y-6 animate-fade-in py-12 text-center">
         <div className="glass-panel p-8 rounded-3xl border border-slate-800 bg-slate-900/60 space-y-4">
@@ -644,7 +654,7 @@ const FlashcardsPage = () => {
           <div>
             <h2 className="font-display text-2xl font-extrabold text-slate-100">Deck Completed!</h2>
             <p className="text-xs text-slate-400 mt-1">
-              You reviewed {filteredCards.length} cards in this session.
+              You reviewed {reviewCards.length} cards in this session.
             </p>
           </div>
 
@@ -725,7 +735,7 @@ const FlashcardsPage = () => {
                 {cards[0]?.deck_name || "Key Concepts & Terminology"}
               </h2>
               <p className="text-xs text-slate-400">
-                Document: <strong className="text-slate-300">{activeDocument.title}</strong>
+                Document: <strong className="text-slate-300">{activeDocument.filename || activeDocument.title || "Document"}</strong>
               </p>
             </div>
 
@@ -823,7 +833,7 @@ const FlashcardsPage = () => {
                 {hasExistingDeck ? "Generate New Flashcards" : "Create Flashcard Deck"}
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Extract high-yield definitions and question cards from <strong>{activeDocument.title}</strong>.
+                Extract high-yield definitions and question cards from <strong>{activeDocument.filename || activeDocument.title || "Document"}</strong>.
               </p>
             </div>
             {hasExistingDeck && (

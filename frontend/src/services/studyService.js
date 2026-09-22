@@ -39,11 +39,12 @@ const studyService = {
   /**
    * Flashcards API
    */
-  async generateFlashcards(documentId, deckName = "Default Deck", count = 20) {
+  async generateFlashcards(documentId, deckName = "Default Deck", count = 20, forceRefresh = false) {
     const response = await apiClient.post("/flashcards/", {
       document_id: documentId,
       deck_name: deckName,
       count: parseInt(count),
+      force_refresh: forceRefresh,
     });
     return response.data;
   },
